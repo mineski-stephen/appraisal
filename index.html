@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!-- Never cache the page itself. -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- Where this page may send data: itself, the Lark connection service and the estimate service
+       (anthropic-ce, on Cloudflare and Render), and this computer for local testing. A login token
+       can't go anywhere else. Add the estimate service's Render address here once it's deployed. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://lark-proxy.stephen-lin.workers.dev https://lark-proxy-dwiw.onrender.com https://anthropic-ce.stephen-lin.workers.dev https://*.onrender.com http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Appraisal · Mineski</title>
+  <meta name="description" content="Appraisal drafts a cost estimate from a client brief, as a project quotation you can edit and save as a PDF.">
+  <meta name="theme-color" content="#F3F7F7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0E1716" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
+  <script>try { var m = /[?&]theme=(light|dark|system)(&|$)/i.exec(location.search); if (m) { var c = m[1].toLowerCase(); if (c === "system") localStorage.removeItem("appraisal.theme"); else localStorage.setItem("appraisal.theme", JSON.stringify(c)); } var t = JSON.parse(localStorage.getItem("appraisal.theme")); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <!-- Every load fetches the stylesheets and every module under a fresh URL. List every JS file here. -->
+  <script>
+    (function () {
+      var v = window.APP_BUILD = Date.now().toString(36);
+      var files = ["js/config.js", "js/errors.js", "js/icons.js", "js/ui.js", "js/settings.js", "js/net.js", "js/session.js",
+                   "js/auth.js", "js/doc.js", "js/terms.js", "js/estimate.js", "js/quote.js", "js/settings-view.js", "js/app.js"];
+      var map = { imports: {} };
+      files.forEach(function (f) { map.imports[new URL(f, location.href).href] = new URL(f + "?v=" + v, location.href).href; });
+      document.write('<link rel="stylesheet" href="css/theme.css?v=' + v + '">');
+      document.write('<link rel="stylesheet" href="css/mineski-base.css?v=' + v + '">');
+      document.write('<link rel="stylesheet" href="css/app.css?v=' + v + '">');
+      document.write('<script type="importmap">' + JSON.stringify(map) + '<\/script>');
+      // Developers only: ?preview on this computer runs on tests/fixture.json (a made-up appraisal), with no login or service.
+      if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]preview(&|=|$)/.test(location.search)) {
+        document.write('<script src="tests/preview-shim.js?v=' + v + '"><\/script>');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="bg" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#/" aria-label="Appraisal home">
+      <span class="brand-name">Appraisal</span>
+      <span class="brand-ver" id="appVersion"></span>
+      <span class="env" id="envBadge" hidden></span>
+    </a>
+    <div class="top-right">
+      <a class="override-badge" id="overrideBadge" href="#/settings" hidden>Overridden</a>
+      <nav class="nav" aria-label="Main">
+        <a href="#/" data-nav="compose" id="newLink" hidden>New estimate</a>
+        <a href="#/quote" data-nav="quote" id="quoteLink" hidden>Quotation</a>
+        <a href="#/settings" data-nav="settings" class="nav-icon" aria-label="Settings" title="Settings"><span class="i" data-icon="gear" aria-hidden="true"></span></a>
+      </nav>
+      <a class="session-pill" id="sessionPill" href="#/settings" hidden>
+        <span class="i" data-icon="clock" aria-hidden="true"></span><span id="sessionLeft"></span>
+      </a>
+      <a class="me" id="meLink" href="#/settings" hidden aria-label="Your account">
+        <img class="avatar" id="avatar" alt="" referrerpolicy="no-referrer" hidden>
+        <span class="avatar avatar-initials" id="initials" aria-hidden="true"></span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div class="banner callout callout-err" id="blockNote" role="alert" hidden>
+      <span class="i" data-icon="alert" aria-hidden="true"></span>
+      <div>
+        <p><b>Appraisal can't reach its connection services.</b> An ad blocker or privacy extension is probably blocking them.</p>
+        <p>Allow <code id="blockHost">lark-proxy.stephen-lin.workers.dev</code> in your blocker (or pause it on this page), then reload.</p>
+      </div>
+      <button type="button" class="btn btn-sm" id="reloadBtn">Reload</button>
+    </div>
+
+    <!-- Logged out -->
+    <section class="view view-login" data-view="login">
+      <div class="login-card">
+        <h1>Appraisal</h1>
+        <p class="lede" id="loginVersion"></p>
+        <button type="button" class="btn btn-primary btn-lg" id="loginBtn"><span class="label">Log in with Lark</span></button>
+        <p class="hint">You'll stay logged in for about 2 hours.</p>
+        <div class="callout callout-warn" id="loginMsg" role="status" hidden></div>
+        <div class="callout callout-err" id="redirectMsg" hidden></div>
+      </div>
+    </section>
+
+    <!-- Finishing a login -->
+    <section class="view view-busy" data-view="busy">
+      <span class="spinner" aria-hidden="true"></span>
+      <p id="busyMsg">Logging you in…</p>
+    </section>
+
+    <!-- The task: a brief in, a draft estimate out -->
+    <section class="view" data-view="compose" aria-labelledby="composeTitle">
+      <div class="mid compose">
+        <div class="banner callout" id="resumeBanner" hidden>
+          <span class="i" data-icon="clock" aria-hidden="true"></span>
+          <div>You have a drafted quotation open: <b id="resumeTitle"></b></div>
+          <button type="button" class="btn btn-sm btn-primary" id="resumeOpen">Open it</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="resumeDiscard">Discard</button>
+        </div>
+        <h1 class="sr-only" id="composeTitle">New estimate</h1>
+        <div class="card hero-card stack">
+          <label class="drop" id="dropZone">
+            <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.txt,.md,.csv" class="sr-only">
+            <span class="i" data-icon="upload" aria-hidden="true"></span>
+            <span><b>Add the client's brief</b><br><span class="hint">PDF, images or text files. Drop them here or click to choose.</span></span>
+          </label>
+          <ul class="chips file-list" id="fileList" hidden></ul>
+          <p class="form-error" id="fileNote" hidden></p>
+          <label class="field">
+            <span>Or paste the brief <em>(optional with a file)</em></span>
+            <textarea id="briefText" rows="5" placeholder="Paste the brief, the client's e-mail or your notes from the call…"></textarea>
+          </label>
+        </div>
+
+        <details class="card card-pad inputs" open>
+          <summary class="subhead">Budget and scale <em class="muted">(optional: they override the brief)</em></summary>
+          <div class="grid-inputs">
+            <label class="field"><span>Client budget (PHP)</span><input type="text" id="in-budget" inputmode="decimal" placeholder="e.g. 1,500,000"></label>
+            <label class="field"><span>The budget is</span>
+              <select id="in-budgetBasis"><option value="VAT_INC">VAT-inclusive</option><option value="VAT_EX">VAT-exclusive</option></select></label>
+            <label class="field"><span>VAT on the quotation</span>
+              <select id="in-vat"><option value="">As the brief says</option><option value="YES">Add 12% VAT</option><option value="NO">VAT-exempt (0%)</option></select></label>
+            <label class="field"><span>Billing entity</span>
+              <select id="in-entity"><option value="PDEI">PDEI</option><option value="GG">GG</option></select></label>
+            <label class="field"><span>Event days</span><input type="number" id="in-eventDays" min="0" step="1" inputmode="numeric"></label>
+            <label class="field"><span>Audience or participants</span><input type="number" id="in-audience" min="0" step="1" inputmode="numeric"></label>
+            <label class="field"><span>Cities or legs</span><input type="number" id="in-cities" min="0" step="1" inputmode="numeric"></label>
+            <label class="field"><span>Talents or KOLs</span><input type="number" id="in-talents" min="0" step="1" inputmode="numeric"></label>
+          </div>
+          <label class="field"><span>Notes for the draft <em>(what the client said, what to include or leave out)</em></span>
+            <textarea id="in-notes" rows="3" placeholder="e.g. Venue is provided by the mall. Two hosts, no KOLs. Keep it under 1.5M."></textarea></label>
+        </details>
+
+        <div class="compose-bar">
+          <p class="hint" id="composeHint" aria-live="polite">Add the client's brief to get started.</p>
+          <button type="button" class="btn btn-primary btn-lg" id="goBtn" disabled>
+            <span class="i" data-icon="sparkles" aria-hidden="true"></span> <span class="label">Draft the estimate</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Working: staged, honest, cancellable -->
+    <section class="view" data-view="working" aria-labelledby="stageLabel">
+      <div class="loader big">
+        <div class="loader-art" aria-hidden="true"><span class="i" data-icon="coin"></span></div>
+        <h2 id="stageLabel" aria-live="polite">Sending the brief…</h2>
+        <p class="loader-sub" id="stageSub"></p>
+        <ul class="stages" id="stages"></ul>
+        <button type="button" class="btn btn-ghost btn-sm" id="cancelBtn">Cancel</button>
+      </div>
+    </section>
+
+    <!-- The drafted quotation -->
+    <section class="view view-quote" data-view="quote" aria-label="Quotation">
+      <div class="page-head no-print">
+        <button type="button" class="back" id="newBtn"><span class="i" data-icon="arrowLeft" aria-hidden="true"></span> New estimate</button>
+        <div class="page-tools">
+          <button type="button" class="btn" id="costsBtn" aria-pressed="false"><span class="i" data-icon="eye" aria-hidden="true"></span> <span class="label">Show costs</span></button>
+          <button type="button" class="btn btn-primary" id="pdfBtn"><span class="i" data-icon="download" aria-hidden="true"></span> <span class="label">Save as PDF</span></button>
+        </div>
+      </div>
+      <div class="split quote-split">
+        <article class="quote" id="quote" aria-label="Project quotation"></article>
+        <aside class="no-print" id="notes" aria-label="Notes for you"></aside>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="view view-settings" data-view="settings" aria-labelledby="settingsTitle">
+      <div class="page-head"><div><h1 id="settingsTitle">Settings</h1><p class="lede sm">Saved in this browser only.</p></div></div>
+      <div class="settings">
+        <section class="card set-card" aria-labelledby="accTitle">
+          <h2 id="accTitle">Account</h2>
+          <div class="account" id="account"></div>
+        </section>
+
+        <section class="card set-card" aria-labelledby="themeTitle">
+          <h2 id="themeTitle">Appearance</h2>
+          <div class="seg" id="themeSeg" role="radiogroup" aria-labelledby="themeTitle">
+            <button type="button" role="radio" data-theme-choice="system"><span class="i" data-icon="monitor" aria-hidden="true"></span> System</button>
+            <button type="button" role="radio" data-theme-choice="light"><span class="i" data-icon="sun" aria-hidden="true"></span> Light</button>
+            <button type="button" role="radio" data-theme-choice="dark"><span class="i" data-icon="moon" aria-hidden="true"></span> Dark</button>
+          </div>
+        </section>
+
+        <section class="card set-card" aria-labelledby="prepTitle">
+          <h2 id="prepTitle">Your details on quotations</h2>
+          <p class="set-sub">Filled in under "Prepared by" on new quotations. You can still change them on each one.</p>
+          <label class="field"><span>Name</span><input type="text" id="prepName" autocomplete="name"></label>
+          <label class="field"><span>Designation</span><input type="text" id="prepTitle" placeholder="e.g. Accounts Manager, PDEI"></label>
+          <label class="field"><span>E-mail for client questions</span><input type="email" id="prepEmail" autocomplete="email"></label>
+        </section>
+
+        <section class="card set-card" aria-labelledby="connTitle">
+          <h2 id="connTitle">Connections</h2>
+          <ul class="status-list" id="connList"></ul>
+          <p class="set-sub" id="envNote" hidden></p>
+          <details class="advanced" id="advanced" hidden>
+            <summary>Advanced: service addresses</summary>
+            <p class="set-sub">For testing on this computer only. Leave them empty to use the hosted services. <code>?lark=</code> and <code>?ce=</code> links do the same for one tab; <code>?reset</code> clears them.</p>
+            <label class="field"><span>Connection service (Lark proxy)</span><input type="url" id="proxyInput" spellcheck="false" autocomplete="off"></label>
+            <div class="row">
+              <button type="button" class="btn" id="proxySave">Save address</button>
+              <button type="button" class="btn btn-ghost" id="proxyReset">Use the hosted service</button>
+            </div>
+            <label class="field"><span>Estimate service (anthropic-ce)</span><input type="url" id="ceInput" spellcheck="false" autocomplete="off"></label>
+            <div class="row">
+              <button type="button" class="btn" id="ceSave">Save address</button>
+              <button type="button" class="btn btn-ghost" id="ceReset">Use the hosted service</button>
+            </div>
+          </details>
+        </section>
+
+        <section class="card set-card" aria-labelledby="localTitle">
+          <h2 id="localTitle">This browser</h2>
+          <p class="set-sub">Clear your quotation details, the saved wait times and the cost view setting. Your login and theme are kept. A drafted quotation stays in this tab until you close it or log out.</p>
+          <div class="row"><button type="button" class="btn btn-ghost" id="clearLocal">Clear local data</button></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script>
+    setTimeout(function () {
+      if (document.documentElement.hasAttribute("data-booted")) return;
+      var d = document.createElement("div");
+      d.className = "banner callout callout-err";
+      d.setAttribute("role", "alert");
+      d.innerHTML = '<div><p><b>Appraisal couldn’t start.</b> Reload the page. If it keeps happening, open it from its web address (not a saved file).</p></div>' +
+                    '<button type="button" class="btn btn-sm" onclick="location.reload()">Reload</button>';
+      (document.getElementById("main") || document.body).prepend(d);
+    }, 8000);
+  </script>
+
+  <script>document.write('<script type="module" src="js/app.js?v=' + window.APP_BUILD + '"><\/script>');</script>
+</body>
+</html>

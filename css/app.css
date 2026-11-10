@@ -1,0 +1,137 @@
+/* Appraisal - tool-specific styles. Everything shared lives in mineski-base.css; this file holds
+   only what is unique to Appraisal (the brief form and the quotation document), using tokens only. */
+
+/* ---- the brief ---------------------------------------------------------------------- */
+.compose { padding-top: clamp(20px, 5vh, 48px); display: grid; gap: 16px; }
+.compose textarea { background: var(--surface-2); border-color: var(--line); }
+.compose textarea:focus { background: var(--surface); }
+.compose-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.drop { display: flex; align-items: center; gap: 14px; padding: 22px; border: 2px dashed var(--line-2); border-radius: var(--r);
+        background: var(--surface-2); cursor: pointer; transition: border-color var(--t-fast), background var(--t-fast); }
+.drop:hover, .drop.is-over, .drop:focus-within { border-color: var(--brand); background: var(--brand-soft); }
+.drop > .i { width: 28px; height: 28px; color: var(--brand-text); flex: none; }
+.file-list { list-style: none; margin: 0; padding: 0; }
+.file-list .chip { display: inline-flex; align-items: center; gap: 6px; }
+.inputs summary { cursor: pointer; }
+.inputs summary em { font-style: normal; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.grid-inputs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 14px 0; }
+
+/* ---- the quotation page ----------------------------------------------------------------- */
+.quote-split { grid-template-columns: minmax(0, 1fr) 300px; }
+#notes .facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
+#notes .facts dd { margin: 0; text-align: right; }
+#notes details summary { cursor: pointer; }
+#notes ul { margin: 8px 0 0; padding-left: 18px; font-size: 14px; }
+#notes li { margin: 4px 0; }
+.warn-text { color: var(--warn); font-weight: 600; }
+.ok-text { color: var(--ok); font-weight: 600; }
+
+/* the document: a white sheet in every theme, because it is shared as a PDF and printed. The
+   light theme's paper tokens are pinned here, so everything inside reads them (tokens only). */
+.quote { --surface: #FFFFFF; --surface-2: #F7FAFA; --ink: #131E1C; --ink-2: #364745; --muted: #637371;
+         --line: #E5EBEA; --line-2: #D3DDDC; --brand-soft: #E7F2F0; --brand-text: #0B786A; --warn: #8A5300; --warn-soft: #FFF2D9;
+         --info: #1F5BD6; --info-soft: #E8EFFE; color-scheme: light; }
+.quote { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r);
+         box-shadow: var(--shadow-md); padding: clamp(18px, 3vw, 40px); font-size: 13.5px; line-height: 1.45; overflow-x: auto; }
+.q-head { background: var(--ink); color: var(--surface); border-radius: var(--r-sm); padding: 18px 22px; margin-bottom: 18px; }
+.q-head h2 { font-size: clamp(22px, 3.2vw, 34px); font-weight: 800; letter-spacing: .02em; }
+.q-band { background: var(--ink); color: var(--surface); font-size: 12px; font-weight: 800; letter-spacing: .08em;
+          text-transform: uppercase; padding: 6px 10px; border-radius: var(--r-xs); margin: 18px 0 10px; }
+.q-info-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 8px 28px; }
+.q-info dl, .q-bank { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 0; }
+.q-info dt, .q-bank dt { font-weight: 700; color: var(--ink-2); }
+.q-info dd, .q-bank dd { margin: 0; min-width: 0; }
+
+.q-table { width: 100%; min-width: 760px; border-collapse: collapse; margin-top: 18px; table-layout: fixed; }
+.q-table col.c-sku { width: 44px; } .q-table col.c-part { width: auto; } .q-table col.c-n { width: 54px; }
+.q-table col.c-per { width: 104px; } .q-table col.c-money { width: 112px; } .q-table col.c-rem { width: 96px; } .q-table col.c-tools { width: 60px; }
+.q-table th { text-align: left; font-size: 11px; font-weight: 800; letter-spacing: .04em; padding: 8px 6px; border-bottom: 2px solid var(--ink); }
+.q-table td { padding: 5px 6px; vertical-align: top; border-bottom: 1px solid var(--line); }
+.q-table td.num, .q-table th:nth-child(n+3):nth-child(-n+7) { text-align: right; }
+.q-section td { font-weight: 800; padding-top: 14px; border-bottom: 0; }
+.q-group td { font-weight: 700; color: var(--ink-2); border-bottom: 0; padding-left: 18px; }
+.q-group td:first-child { padding-left: 6px; }
+.q-line .q-part { padding-left: 34px; }
+.q-part-main { display: flex; align-items: baseline; gap: 8px; }
+.q-details { color: var(--muted); }
+.q-sub { font-weight: 700; font-variant-numeric: tabular-nums; }
+.q-tools { white-space: nowrap; text-align: right; opacity: .35; transition: opacity var(--t-fast); }
+tr:hover > .q-tools, tr:focus-within > .q-tools { opacity: 1; }
+@media (hover: none) { .q-tools { opacity: .8; } }
+.small { font-size: 12px; }
+
+/* cells edited in place look like text until touched */
+.ed { outline: none; border-radius: 4px; padding: 0 2px; margin: 0 -2px; cursor: text; min-width: 1ch; display: inline-block;
+      transition: background var(--t-fast), box-shadow var(--t-fast); }
+.ed:hover { background: color-mix(in srgb, var(--brand) 10%, transparent); }
+.ed:focus { background: var(--brand-soft); box-shadow: 0 0 0 2px var(--brand); }
+.ed:empty::before { content: attr(data-placeholder); color: var(--muted); font-style: italic; }
+.quote .cell-num, .quote .cell-per, .quote .cell-date { width: 100%; min-height: 28px; padding: 2px 4px; border: 1px solid transparent; border-radius: 4px;
+      background: transparent; color: inherit; font: inherit; font-size: 13.5px; text-align: right; font-variant-numeric: tabular-nums; box-shadow: none; }
+.quote .cell-per { text-align: left; appearance: none; -webkit-appearance: none; cursor: pointer; }
+.quote .cell-date { text-align: left; width: auto; }
+.quote .cell-num:hover, .quote .cell-per:hover, .quote .cell-date:hover { background: color-mix(in srgb, var(--brand) 10%, transparent); }
+.quote .cell-num:focus, .quote .cell-per:focus, .quote .cell-date:focus { border-color: var(--brand); background: var(--surface); }
+.print-only { display: none; }
+
+/* internal rows: costs, markups and where each price came from (screen only) */
+.q-internal td { border-bottom: 1px dashed var(--line-2); background: var(--surface-2); padding-top: 4px; padding-bottom: 6px; }
+.q-cost { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12px; color: var(--ink-2); padding-left: 28px; }
+.q-cost label { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+.quote .q-cost .cell-num { width: 110px; min-height: 24px; font-size: 12px; border-color: var(--line-2); background: var(--surface); }
+.q-src { color: var(--muted); }
+
+.q-totals { margin: 16px 0 0 auto; border-collapse: collapse; min-width: 340px; }
+.q-totals th { text-align: left; padding: 5px 10px; font-size: 12.5px; font-weight: 800; letter-spacing: .03em; }
+.q-totals td { padding: 5px 6px; text-align: right; font-variant-numeric: tabular-nums; }
+.q-totals .rate-cell { width: 80px; color: var(--muted); }
+.quote .q-totals .rate { width: 70px; }
+.quote .q-totals .money { width: 130px; }
+.q-grand th, .q-grand td { border-top: 2px solid var(--ink); font-size: 15px; font-weight: 800; padding-top: 8px; }
+
+.q-terms ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.q-terms li { display: grid; grid-template-columns: 40px 1fr; gap: 8px; text-align: justify; }
+.q-terms p { margin: 0 0 6px; }
+.q-n { font-weight: 800; }
+.q-amount { font-weight: 800; font-size: 15px; }
+.q-mini { border-collapse: collapse; margin: 6px 0 8px; }
+.q-mini th, .q-mini td { padding: 4px 10px; border: 1px solid var(--line-2); font-size: 12.5px; text-align: left; }
+.q-mini th { font-weight: 800; }
+
+.q-signs { margin-top: 26px; display: grid; gap: 18px; }
+.q-sig { display: grid; gap: 2px; max-width: 360px; }
+.q-sigline { border-bottom: 1px solid var(--ink); height: 36px; margin-bottom: 4px; }
+.q-signame { font-weight: 800; }
+.q-two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.q-contact { color: var(--ink-2); }
+
+@media (max-width: 1100px) {
+  .quote-split { grid-template-columns: minmax(0, 1fr); }
+  .quote-split > aside { position: static; }
+  .grid-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .compose-bar { flex-direction: column-reverse; align-items: stretch; text-align: center; }
+  .q-info-grid, .q-two { grid-template-columns: 1fr; }
+  .quote { padding: 14px; }
+}
+
+/* ---- the PDF: only the quotation, always light, never anything internal ---------------------- */
+@page { size: A4; margin: 12mm 11mm; }
+@media print {
+  body[data-view="quote"] main > :not(.view-quote), .view-quote .page-head, .quote-split > aside,
+  .internal, .q-internal, .q-tools, col.c-tools, .no-print { display: none !important; }
+  .quote-split { display: block; }
+  .quote { border: 0; box-shadow: none; padding: 0; overflow: visible; font-size: 10.5px; color: #000; background: #fff; }
+  .q-head, .q-band { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .q-table { min-width: 0; }
+  .q-table thead { display: table-header-group; }
+  .q-table tr { break-inside: avoid; }
+  .q-terms li, .q-totals, .q-signs { break-inside: avoid; }
+  .ed:empty::before, .ed.is-blank::before { content: ""; }
+  .ed, .cell-num, .cell-per { background: none !important; box-shadow: none !important; border: 0 !important; }
+  .cell-per, .cell-num { padding: 0; min-height: 0; }
+  .cell-date { display: none; }
+  .print-only { display: inline; }
+  .q-table th, .q-table td, .q-mini th, .q-mini td { border-color: #999; }
+}

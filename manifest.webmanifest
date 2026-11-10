@@ -1,0 +1,11 @@
+{
+  "name": "Appraisal",
+  "short_name": "Appraisal",
+  "description": "Drafts a cost estimate from a client brief, as a project quotation you can edit and save as a PDF.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F7F7",
+  "theme_color": "#0B7D6E",
+  "icons": []
+}

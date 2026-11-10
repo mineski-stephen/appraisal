@@ -1,0 +1,12 @@
+{
+  "name": "appraisal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Appraisal: drafts a cost estimate from a client brief (page). Its service is ../anthropic-ce.",
+  "type": "module",
+  "scripts": {
+    "serve": "python tools/serve.py",
+    "test": "node --test tests/",
+    "test:proxy": "cd ../anthropic-ce && npm test"
+  }
+}
