@@ -10,7 +10,7 @@
  * themselves are never stored.
  */
 import { APP, ENV_LABEL, RULES } from "./config.js";
-import { $, $$, h, ic, fillIcons, toast, fmt, store, recall, busy, closeMenu } from "./ui.js";
+import { $, $$, h, ic, fillIcons, toast, fmt, store, recall, busy, closeMenu, confirmSheet } from "./ui.js";
 import * as settings from "./settings.js";
 import { cfg } from "./settings.js";
 import { larkService, ceService, onAnyService, blockedHosts } from "./net.js";
@@ -289,14 +289,18 @@ async function draft() {
     paintStages("price", "");
     remember((Date.now() - started) / 1000);
     S.doc = D.fromAppraisal(out.appraisal, { today: todayISO(), validDays: RULES.validDays, entity: inputs.entity || "PDEI",
-      preparer: settings.preparer(), inputs });
+      preparer: settings.preparer(), inputs, meta: out.meta });
     saveDraft();
     S.run = null;
     location.hash = "#/quote";
     onRoute();
-    const st = out.appraisal.stats || {};
-    toast(`Drafted ${fmt.plural(st.lines || D.allLines(S.doc).length, "line")}.`, { type: "success",
-      detail: st.estimate ? `${st.estimate} ${st.estimate === 1 ? "is an estimate" : "are estimates"} with no price history: check the flagged lines.` : "Every price comes from past CEs or the brief." });
+    const fit = out.appraisal.budget;
+    if (fit && fit.status === "over") {
+      toast("Even the essential lines are over the budget.", { type: "error", detail: "Nothing essential was dropped. See the notes beside the quotation." });
+    } else {
+      toast(`Drafted ${fmt.plural(D.allLines(S.doc).length, "line")}${fit ? ", within the budget" : ""}.`, { type: "success",
+        detail: fit && fit.steps && fit.steps.length ? fit.steps.join(" ") : "Every catalogue price comes from past CEs." });
+    }
   } catch (err) {
     S.run = null;
     if (err.code === "aborted") { onRoute(); return; }
@@ -329,16 +333,20 @@ function paintNotes() {
   if (!S.doc) return;
   const n = S.doc.notes;
   const t = D.totals(S.doc);
-  const budget = n.budget || 0;
-  let budgetLine = null;
-  if (budget) {
-    const target = n.budget_basis === "VAT_EX" ? t.subtotal : t.grand;
-    const gap = target - budget;
-    budgetLine = h("p", { class: Math.abs(gap) <= budget * 0.05 ? "ok-text" : gap > 0 ? "warn-text" : "" },
-      Math.abs(gap) <= budget * 0.05 ? `Within 5% of the ${fmt.peso(budget)} budget.`
-        : gap > 0 ? `${fmt.peso(gap)} over the ${fmt.peso(budget)} budget. Lower markups first, then unit costs, then scope.`
-          : `${fmt.peso(-gap)} under the ${fmt.peso(budget)} budget.`);
-  }
+  const b = D.budgetCheck(S.doc);
+  const budgetLine = b ? h("p", { class: b.over ? "warn-text" : "ok-text" },
+    b.over ? `${fmt.peso(-b.left)} over the ${fmt.peso(b.amount)} budget. Lower markups first, then unit costs, then scope.`
+      : `Within the ${fmt.peso(b.amount)} budget (${fmt.peso(b.left)} to spare).`) : null;
+  const steps = n.fit && n.fit.steps && n.fit.steps.length ? h("p", { class: "hint" }, `To fit the budget: ${n.fit.steps.join(" ")}`) : null;
+  const removed = (n.removed || []).map((r, i) => h("li", null, `${r.line.particular} (${fmt.peso(D.lineTotal(r.line))}) `,
+    h("button", { type: "button", class: "btn btn-sm btn-ghost", onclick: () => {
+      D.addBack(S.doc, i); saveDraft(); renderQuote();
+      const now = D.budgetCheck(S.doc);
+      toast(`Added "${r.line.particular}" back.`, { type: now && now.over ? "warn" : "info", detail: now && now.over ? "The quotation is now over the budget." : "" });
+    } }, "Add back")));
+  const d = n.draft;
+  const draftLine = d && d.cost_usd != null ? h("p", { class: "hint" },
+    `This draft: ${d.seconds}s, about US$${d.cost_usd.toFixed(2)} (${(d.usage.output_tokens || 0).toLocaleString()} tokens written).`) : null;
   const estimates = D.allLines(S.doc).filter((l) => (l.source || {}).kind === "estimate").length;
   $("#notes").replaceChildren(
     h("section", { class: "card card-pad stack" },
@@ -348,15 +356,27 @@ function paintNotes() {
         h("dt", null, "Gross profit"), h("dd", { class: "num" }, `${fmt.peso(t.gp)} (${D.pct(t.gp_margin)})`),
         h("dt", null, "Grand total"), h("dd", { class: "num" }, fmt.peso(t.grand))),
       budgetLine,
+      steps,
       estimates ? h("p", { class: "warn-text" }, `${estimates} ${estimates === 1 ? "line is an estimate" : "lines are estimates"} with no price history. Get quotes before sending.`) : null,
-      h("p", { class: "hint" }, "Costs, markups and these notes never appear in the PDF.")),
+      h("p", { class: "hint" }, "Costs, markups and these notes never appear in the PDF."),
+      draftLine),
+    removed.length ? h("details", { class: "card card-pad", open: true }, h("summary", { class: "subhead" }, `Left out to fit the budget (${removed.length})`),
+      h("ul", { class: "removed-list" }, ...removed)) : null,
     h("details", { class: "card card-pad", open: true }, h("summary", { class: "subhead" }, `Questions for the client (${n.clarifications.length})`), list(n.clarifications)),
     h("details", { class: "card card-pad" }, h("summary", { class: "subhead" }, `Assumptions (${n.assumptions.length})`), list(n.assumptions)),
     h("details", { class: "card card-pad" }, h("summary", { class: "subhead" }, `Left out (${n.excluded.length})`), list(n.excluded)),
     h("details", { class: "card card-pad" }, h("summary", { class: "subhead" }, `Checks (${(n.checks || []).length})`), list((n.checks || []).map((c) => c.text))));
 }
 
-function printPdf() {
+async function printPdf() {
+  const b = D.budgetCheck(S.doc);
+  if (b && b.over) {
+    const ok = await confirmSheet({ title: "This quotation is over the client's budget", icon: "alert", danger: true,
+      sub: `It comes to ${fmt.peso(b.total)} against a budget of ${fmt.peso(b.amount)}: ${fmt.peso(-b.left)} over.`,
+      body: h("p", null, "Lower the markups or the scope first, or save it anyway if the client agreed a bigger budget."),
+      confirm: "Save anyway", busyText: "Opening…" });
+    if (!ok) return;
+  }
   const title = document.title;
   const p = S.doc.project;
   document.title = `Quotation - ${[p.code, p.title].filter(Boolean).join(" ") || "Mineski"}`;   // the PDF's file name

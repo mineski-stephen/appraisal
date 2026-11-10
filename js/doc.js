@@ -30,7 +30,7 @@ export function addDays(iso, days) {
 }
 
 /** A fresh document from the service's appraisal. */
-export function fromAppraisal(ap, { today, validDays = 7, entity = "PDEI", preparer = {}, inputs = {} } = {}) {
+export function fromAppraisal(ap, { today, validDays = 7, entity = "PDEI", preparer = {}, inputs = {}, meta = null } = {}) {
   const p = ap.project || {};
   return {
     v: DOC_VERSION,
@@ -41,11 +41,7 @@ export function fromAppraisal(ap, { today, validDays = 7, entity = "PDEI", prepa
     },
     sections: (ap.sections || []).map((s) => ({
       name: s.name, groups: (s.groups || []).map((g) => ({
-        name: g.name, lines: (g.lines || []).map((l) => ({
-          id: newId(), particular: l.particular, details: l.details || "", qty: num(l.qty, 1), frq: num(l.frq, 1), per: l.per || "per project",
-          unit_cost: num(l.unit_cost), markup: num(l.markup), category: l.category || "", method: l.method || "",
-          covers: l.covers || "", remarks: l.remarks || "", source: l.source || { kind: "estimate" }, remarksOnQuote: "",
-        })),
+        name: g.name, lines: (g.lines || []).map(toLine),
       })),
     })),
     asf_rate: num((ap.defaults || {}).asf_rate, 0.125),
@@ -58,9 +54,42 @@ export function fromAppraisal(ap, { today, validDays = 7, entity = "PDEI", prepa
     notes: {
       summary: p.summary || "", assumptions: ap.assumptions || [], clarifications: ap.clarifications || [],
       excluded: ap.excluded || [], checks: ap.checks || [], stats: ap.stats || {},
-      budget: num(inputs.budget), budget_basis: inputs.budget_basis || "VAT_INC",
+      budget: num((ap.budget && ap.budget.amount) || inputs.budget), budget_basis: (ap.budget && ap.budget.basis) || inputs.budget_basis || "VAT_INC",
+      fit: ap.budget || null,
+      removed: (ap.removed || []).map((r) => ({ section: r.section, group: r.group, line: toLine(r.line) })),
+      draft: meta ? { model: meta.model || "", cost_usd: meta.cost_usd ?? null, seconds: Math.round((meta.duration_ms || 0) / 1000),
+        usage: meta.usage || {} } : null,
     },
   };
+}
+
+function toLine(l) {
+  return { id: newId(), particular: l.particular, details: l.details || "", qty: num(l.qty, 1), frq: num(l.frq, 1), per: l.per || "per project",
+    unit_cost: num(l.unit_cost), markup: num(l.markup), category: l.category || "", method: l.method || "", priority: l.priority || "",
+    covers: l.covers || "", remarks: l.remarks || "", source: l.source || { kind: "estimate" }, remarksOnQuote: "" };
+}
+
+/** How the quotation stands against the client's budget: null without a budget, else
+ *  { amount, total, left, over } (total is the grand total, or the subtotal for a VAT-exclusive budget). */
+export function budgetCheck(doc) {
+  const amount = num(doc.notes && doc.notes.budget);
+  if (!amount) return null;
+  const t = totals(doc);
+  const total = doc.notes.budget_basis === "VAT_EX" ? t.subtotal : t.grand;
+  return { amount, total, left: r2(amount - total), over: total > amount + 0.004 };
+}
+
+/** Put a line the budget fit left out back into its sub-section (or a new one at the end). */
+export function addBack(doc, index) {
+  const r = (doc.notes.removed || [])[index];
+  if (!r) return null;
+  let sec = doc.sections.find((s) => s.name === r.section);
+  if (!sec) { sec = { name: r.section, groups: [] }; doc.sections.push(sec); }
+  let g = sec.groups.find((x) => x.name === r.group);
+  if (!g) { g = { name: r.group, lines: [] }; sec.groups.push(g); }
+  g.lines.push(r.line);
+  doc.notes.removed.splice(index, 1);
+  return r.line;
 }
 
 export const clientUnit = (l) => r2(num(l.unit_cost) * (1 + num(l.markup)));
@@ -160,5 +189,6 @@ export function normalize(doc) {
   doc.prepared_by = doc.prepared_by || { name: "", title: "", email: "" };
   doc.approved_by = doc.approved_by || { name: "", title: "" };
   doc.notes = doc.notes || { assumptions: [], clarifications: [], excluded: [], checks: [], stats: {} };
+  doc.notes.removed = doc.notes.removed || [];
   return doc;
 }

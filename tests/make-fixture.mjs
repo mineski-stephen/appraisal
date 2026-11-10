@@ -30,6 +30,6 @@ const draft = {
   clarifications: ["How many teams will join the tournament?", "Is the prize pool part of the budget?"],
   excluded: ["Livestream production: the brief asks for photos only."],
 };
-const appraisal = price(draft, KB, readInputs({ budget: 900000, vat: "YES" }));
-writeFileSync(new URL("./fixture.json", import.meta.url), JSON.stringify({ appraisal, meta: { model: "preview", usage: {} } }, null, 1));
+const appraisal = price(draft, KB, readInputs({ budget: 450000, vat: "YES" }));
+writeFileSync(new URL("./fixture.json", import.meta.url), JSON.stringify({ appraisal, meta: { model: "claude-opus-5-5", duration_ms: 64000, cost_usd: 0.41, usage: { output_tokens: 9800 } } }, null, 1));
 console.log("fixture:", appraisal.stats, appraisal.totals);

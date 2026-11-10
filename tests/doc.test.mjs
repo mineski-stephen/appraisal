@@ -14,9 +14,12 @@ test("a new document takes the service's lines, rates and dates", () => {
   assert.equal(doc.project.expires, "2026-11-17");
   assert.equal(doc.asf_rate, 0.125);
   assert.equal(doc.vat_rate, 0.12);
+  assert.equal(D.allLines(doc).length, 6);                 // one left out to fit the sample budget
+  assert.equal(doc.notes.removed.length, 1);
+  assert.equal(D.addBack(doc, 0).particular, "Lights and Sounds Package");
   assert.equal(D.allLines(doc).length, 7);
   assert.equal(doc.prepared_by.name, "A. Manager");
-  assert.equal(doc.notes.budget, 900000);
+  assert.equal(doc.notes.budget, 450000);                  // the service's budget wins over the form's
 });
 
 test("totals match the service's and the template's formulas", () => {
