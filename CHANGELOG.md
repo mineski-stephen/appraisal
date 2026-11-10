@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 · Nov 10, 2026
+
+- The Estimate and Brief tags now follow the particular instead of squeezing it onto extra lines.
+
 ## 0.2.0 · Nov 10, 2026
 
 - Drafts fit the client's budget. The notes say what was done to fit it, list any lines left out with an Add back button, and show what the draft cost. Saving a PDF that is over the budget asks first. Needs anthropic-ce 1.1.0.

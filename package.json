@@ -1,6 +1,6 @@
 {
   "name": "appraisal",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Appraisal: drafts a cost estimate from a client brief (page). Its service is ../anthropic-ce.",
   "type": "module",

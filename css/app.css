@@ -52,7 +52,10 @@
 .q-group td { font-weight: 700; color: var(--ink-2); border-bottom: 0; padding-left: 18px; }
 .q-group td:first-child { padding-left: 6px; }
 .q-line .q-part { padding-left: 34px; }
-.q-part-main { display: flex; align-items: baseline; gap: 8px; }
+/* the particular runs as text; its Estimate / Brief badge follows it inline, so it never narrows the text */
+.q-part-main > .ed { display: inline; }
+.q-part-main > .badge { display: inline-flex; margin-left: 6px; vertical-align: 1px; white-space: nowrap;
+                        font-size: 10.5px; padding: 1px 7px; line-height: 1.5; }
 .q-details { color: var(--muted); }
 .q-sub { font-weight: 700; font-variant-numeric: tabular-nums; }
 .q-tools { white-space: nowrap; text-align: right; opacity: .35; transition: opacity var(--t-fast); }
