@@ -1,9 +1,12 @@
 /* Appraisal - tool-specific styles. Everything shared lives in mineski-base.css; this file holds
-   only what is unique to Appraisal (the brief form and the quotation document), using tokens only. */
+   only what is unique to Appraisal (the brief form and the quotation document). The page uses
+   tokens only; the quotation sheet has its own small palette (see ".quote" below), because it is
+   a client document that must look like Mineski's signed quotations in every theme and on paper. */
 
 /* ---- the brief ---------------------------------------------------------------------- */
 .compose { padding-top: clamp(20px, 5vh, 48px); display: grid; gap: 16px; }
-.compose textarea { background: var(--surface-2); border-color: var(--line); }
+.compose .banner { margin: 0; max-width: none; }
+.compose textarea { background: var(--surface-2); border-color: var(--line); resize: vertical; }
 .compose textarea:focus { background: var(--surface); }
 .compose-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .drop { display: flex; align-items: center; gap: 14px; padding: 22px; border: 2px dashed var(--line-2); border-radius: var(--r);
@@ -12,129 +15,217 @@
 .drop > .i { width: 28px; height: 28px; color: var(--brand-text); flex: none; }
 .file-list { list-style: none; margin: 0; padding: 0; }
 .file-list .chip { display: inline-flex; align-items: center; gap: 6px; }
-.inputs summary { cursor: pointer; }
-.inputs summary em { font-style: normal; text-transform: none; letter-spacing: 0; font-weight: 500; }
-.grid-inputs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 14px 0; }
+/* budget and scale: part of the same card as the brief, under a rule */
+.more.inputs { border-top: 1px solid var(--line); padding: 8px 0 0; }
+.inputs > summary { margin: 0 -10px; }
+.inputs > summary em { font-style: normal; font-weight: 500; }
+.inputs-body { display: grid; gap: 14px; padding-top: 10px; }
+.grid-inputs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 12px; }
 
 /* ---- the quotation page ----------------------------------------------------------------- */
-.quote-split { grid-template-columns: minmax(0, 1fr) 300px; }
-#notes .facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
-#notes .facts dd { margin: 0; text-align: right; }
-#notes details summary { cursor: pointer; }
-#notes ul { margin: 8px 0 0; padding-left: 18px; font-size: 14px; }
-#notes li { margin: 4px 0; }
+/* a document needs more room than a list: the view is `.wide` (mineski-base.css widens main for it) */
+.view-quote .page-head { position: sticky; top: var(--topbar); z-index: 5; align-items: center; padding: 14px 0 12px; margin-bottom: 6px;
+                         background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.quote-status { margin: 0 auto 0 4px; font-size: 13.5px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.quote-status b { font-weight: 800; }
+.quote-status .ok-text, .quote-status .warn-text { margin-left: 8px; }
+.quote-split { grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; }
+/* the notes scroll on their own when they are taller than the window (a sticky column can't be reached otherwise) */
+.quote-split > aside { top: calc(var(--topbar) + 76px); max-height: calc(100dvh - var(--topbar) - 92px); }   /* below the sticky toolbar */
+#notes p { font-size: 13.5px; }
+#notes ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+#notes li { margin: 5px 0; }
+#notes li .btn { margin-left: 4px; }
 .warn-text { color: var(--warn); font-weight: 600; }
 .ok-text { color: var(--ok); font-weight: 600; }
 
-/* the document: a white sheet in every theme, because it is shared as a PDF and printed. The
-   light theme's paper tokens are pinned here, so everything inside reads them (tokens only). */
-.quote { --surface: #FFFFFF; --surface-2: #F7FAFA; --ink: #131E1C; --ink-2: #364745; --muted: #637371;
-         --line: #E5EBEA; --line-2: #D3DDDC; --brand-soft: #E7F2F0; --brand-text: #0B786A; --warn: #8A5300; --warn-soft: #FFF2D9;
-         --info: #1F5BD6; --info-soft: #E8EFFE; color-scheme: light; }
+/* ---- the document ---------------------------------------------------------------------------
+   A white sheet in every theme, because it is shared as a PDF and printed. The light theme's
+   paper tokens are pinned here so the shared parts inside (badges, focus) read them, and the
+   sheet's own palette follows Mineski's signed quotations: a navy band for a section, pale blue
+   for a sub-section, grey stripes for the lines, gold for the grand total. */
+.quote { --surface: #FFFFFF; --surface-2: #F7FAFA; --ink: #14191F; --ink-2: #3B4651; --muted: #66727E;
+         --line: #E3E7EB; --line-2: #CBD2D9; --brand-soft: #E7F2F0; --brand-text: #0B786A; --warn: #8A5300; --warn-soft: #FFF2D9;
+         --info: #1F5BD6; --info-soft: #E8EFFE;
+         --q-navy: #0B2F55; --q-sky: #CFE0F4; --q-head: #E8ECF0; --q-stripe: #F4F6F8; --q-rule: #B9C2CB;
+         --q-gold: #F5C542; --q-gold-soft: #FDF2CF; --q-tools: 86px; --q-rem: 96px; color-scheme: light; }
 .quote { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r);
-         box-shadow: var(--shadow-md); padding: clamp(18px, 3vw, 40px); font-size: 13.5px; line-height: 1.45; overflow-x: auto; }
-.q-head { background: var(--ink); color: var(--surface); border-radius: var(--r-sm); padding: 18px 22px; margin-bottom: 18px; }
-.q-head h2 { font-size: clamp(22px, 3.2vw, 34px); font-weight: 800; letter-spacing: .02em; }
-.q-band { background: var(--ink); color: var(--surface); font-size: 12px; font-weight: 800; letter-spacing: .08em;
-          text-transform: uppercase; padding: 6px 10px; border-radius: var(--r-xs); margin: 18px 0 10px; }
-.q-info-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 8px 28px; }
-.q-info dl, .q-bank { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 0; }
-.q-info dt, .q-bank dt { font-weight: 700; color: var(--ink-2); }
-.q-info dd, .q-bank dd { margin: 0; min-width: 0; }
+         box-shadow: var(--shadow-md); padding: clamp(18px, 3vw, 44px) clamp(16px, 2.6vw, 36px); font-size: 13px; line-height: 1.45; min-width: 0; }
 
-.q-table { width: 100%; min-width: 760px; border-collapse: collapse; margin-top: 18px; table-layout: fixed; }
-.q-table col.c-sku { width: 44px; } .q-table col.c-part { width: auto; } .q-table col.c-n { width: 54px; }
-.q-table col.c-per { width: 104px; } .q-table col.c-money { width: 112px; } .q-table col.c-rem { width: 96px; } .q-table col.c-tools { width: 60px; }
-.q-table th { text-align: left; font-size: 11px; font-weight: 800; letter-spacing: .04em; padding: 8px 6px; border-bottom: 2px solid var(--ink); }
-.q-table td { padding: 5px 6px; vertical-align: top; border-bottom: 1px solid var(--line); }
-.q-table td.num, .q-table th:nth-child(n+3):nth-child(-n+7) { text-align: right; }
-.q-section td { font-weight: 800; padding-top: 14px; border-bottom: 0; }
-.q-group td { font-weight: 700; color: var(--ink-2); border-bottom: 0; padding-left: 18px; }
-.q-group td:first-child { padding-left: 6px; }
-.q-line .q-part { padding-left: 34px; }
+/* header: the title in the middle, the Mineski mark on the right */
+.q-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin-bottom: 18px; }
+.q-title { grid-column: 2; text-align: center; }
+.q-title h2 { font-size: clamp(22px, 2.8vw, 34px); font-weight: 800; letter-spacing: .01em; line-height: 1.1; }
+.q-title p { margin-top: 10px; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; }
+.q-logo { grid-column: 3; justify-self: end; width: 118px; height: auto; }
+
+/* client information: bold labels on the right of their column, as on the signed quotations */
+.q-info { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 8px 32px; margin: 0 auto 22px; max-width: 880px; }
+.q-info dl, .q-bank { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 10px; margin: 0; align-content: start; }
+.q-info dt { text-align: right; font-weight: 800; font-size: .88em; padding-top: .1em; }
+.q-info dd, .q-bank dd { margin: 0; min-width: 0; }
+.q-contact-person .ed { display: block; width: fit-content; max-width: 100%; }
+.q-date-wrap { position: relative; }
+.q-date-input { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
+
+/* the lines */
+.q-table-wrap { overflow-x: auto; }
+.q-table { width: 100%; min-width: 960px; border-collapse: collapse; table-layout: fixed; }
+.q-table col.c-sku { width: 54px; } .q-table col.c-part { width: auto; } .q-table col.c-qty { width: 68px; } .q-table col.c-frq { width: 80px; }
+.q-table col.c-per { width: 98px; } .q-table col.c-money { width: 112px; } .q-table col.c-sub { width: 110px; } .q-table col.c-rem { width: var(--q-rem); }
+.q-table col.c-tools { width: var(--q-tools); }
+.q-table th { background: var(--q-head); text-align: left; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; padding: 7px 8px;
+              border-top: 1px solid var(--q-rule); border-bottom: 1px solid var(--q-rule); }
+.q-table td { padding: 4px 8px; vertical-align: middle; overflow-wrap: anywhere; }
+.q-table .num { text-align: right; }
+.q-table .q-c { text-align: center; }
+.q-table tbody tr:last-child td:not(.q-tools) { border-bottom: 1px solid var(--q-rule); }
+.q-sku { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.q-section td { background: var(--q-navy); color: #FFFFFF; font-weight: 800; letter-spacing: .03em; padding-top: 6px; padding-bottom: 6px; }
+.q-section td .ed { text-transform: uppercase; }
+.q-group td { background: var(--q-sky); font-weight: 800; }
+.q-group td:nth-child(2) { padding-left: 20px; }
+.q-line .q-part { padding-left: 32px; }
+.q-line.is-odd td, .q-internal.is-odd td { background: var(--q-stripe); }
+.q-table th.q-tools, .q-table td.q-tools { background: none; border: 0; padding: 0 0 0 6px; }
 /* the particular runs as text; its Estimate / Brief badge follows it inline, so it never narrows the text */
 .q-part-main > .ed { display: inline; }
 .q-part-main > .badge { display: inline-flex; margin-left: 6px; vertical-align: 1px; white-space: nowrap;
-                        font-size: 10.5px; padding: 1px 7px; line-height: 1.5; }
-.q-details { color: var(--muted); }
-.q-sub { font-weight: 700; font-variant-numeric: tabular-nums; }
-.q-tools { white-space: nowrap; text-align: right; opacity: .35; transition: opacity var(--t-fast); }
+                        font-size: 10.5px; height: auto; padding: 1px 7px; line-height: 1.5; }
+.q-details { color: var(--ink-2); font-size: .93em; white-space: pre-line; }
+.q-details .ed { display: block; }
+.q-details.is-empty:not(.is-open) { display: none; }
+.q-sub { font-weight: 800; font-variant-numeric: tabular-nums; }
+.q-rem { font-size: .93em; }
+.q-tools { white-space: nowrap; text-align: right; opacity: .4; transition: opacity var(--t-fast); }
 tr:hover > .q-tools, tr:focus-within > .q-tools { opacity: 1; }
-@media (hover: none) { .q-tools { opacity: .8; } }
-.small { font-size: 12px; }
+.quote .q-tool { width: 26px; height: 26px; min-height: 0; border-radius: var(--r-xs); }
+.quote .q-tool .i { width: 15px; height: 15px; }
+.q-add { padding: 8px 0 0; }
+@media (hover: none) {
+  .quote { --q-tools: 114px; }
+  .q-tools { opacity: .85; }
+  .quote .q-tool { width: 34px; height: 34px; }
+}
 
 /* cells edited in place look like text until touched */
-.ed { outline: none; border-radius: 4px; padding: 0 2px; margin: 0 -2px; cursor: text; min-width: 1ch; display: inline-block;
+.ed { outline: none; border-radius: 4px; padding: 0 3px; margin: 0 -3px; cursor: text; min-width: 1ch; display: inline-block;
       transition: background var(--t-fast), box-shadow var(--t-fast); }
-.ed:hover { background: color-mix(in srgb, var(--brand) 10%, transparent); }
-.ed:focus { background: var(--brand-soft); box-shadow: 0 0 0 2px var(--brand); }
-.ed:empty::before { content: attr(data-placeholder); color: var(--muted); font-style: italic; }
-.quote .cell-num, .quote .cell-per, .quote .cell-date { width: 100%; min-height: 28px; padding: 2px 4px; border: 1px solid transparent; border-radius: 4px;
-      background: transparent; color: inherit; font: inherit; font-size: 13.5px; text-align: right; font-variant-numeric: tabular-nums; box-shadow: none; }
-.quote .cell-per { text-align: left; appearance: none; -webkit-appearance: none; cursor: pointer; }
-.quote .cell-date { text-align: left; width: auto; }
-.quote .cell-num:hover, .quote .cell-per:hover, .quote .cell-date:hover { background: color-mix(in srgb, var(--brand) 10%, transparent); }
-.quote .cell-num:focus, .quote .cell-per:focus, .quote .cell-date:focus { border-color: var(--brand); background: var(--surface); }
-.print-only { display: none; }
+.ed:hover { background: color-mix(in srgb, var(--brand) 12%, transparent); }
+.ed:focus, .ed:focus-visible { background: var(--brand-soft); color: var(--ink); box-shadow: 0 0 0 2px var(--brand); }
+.ed:empty::before { content: attr(data-placeholder); color: var(--muted); font-style: italic; font-weight: 500; text-transform: none; letter-spacing: 0; }
+.q-section .ed:empty::before { color: color-mix(in srgb, #FFFFFF 70%, transparent); }
+button.ed { border: 0; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.quote .cell-num, .quote .cell-per { width: 100%; min-height: 26px; padding: 2px 4px; border: 1px solid transparent; border-radius: 4px;
+      background: transparent; color: inherit; font: inherit; text-align: right; font-variant-numeric: tabular-nums; box-shadow: none; }
+.quote .q-c .cell-num { text-align: center; }
+.quote .cell-per { text-align: left; appearance: none; -webkit-appearance: none; background-image: none; cursor: pointer; text-overflow: ellipsis; }
+.quote .cell-num:hover, .quote .cell-per:hover { background: color-mix(in srgb, var(--brand) 12%, transparent); }
+.quote .cell-num:focus, .quote .cell-per:focus { border-color: var(--brand); background: var(--surface); outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 25%, transparent); }
+.quote .cell-num[aria-invalid="true"] { border-color: var(--danger); background: var(--danger-soft); }
 
 /* internal rows: costs, markups and where each price came from (screen only) */
-.q-internal td { border-bottom: 1px dashed var(--line-2); background: var(--surface-2); padding-top: 4px; padding-bottom: 6px; }
-.q-cost { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12px; color: var(--ink-2); padding-left: 28px; }
-.q-cost label { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
-.quote .q-cost .cell-num { width: 110px; min-height: 24px; font-size: 12px; border-color: var(--line-2); background: var(--surface); }
+.q-internal td { padding-top: 2px; padding-bottom: 8px; }
+.q-cost { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12px; color: var(--ink-2);
+          margin-left: 32px; padding: 2px 0 2px 10px; border-left: 3px solid var(--brand); }
+.q-cost label { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.quote .q-cost .cell-num { width: 108px; min-height: 24px; border-color: var(--line-2); background: var(--surface); }
 .q-src { color: var(--muted); }
 
-.q-totals { margin: 16px 0 0 auto; border-collapse: collapse; min-width: 340px; }
-.q-totals th { text-align: left; padding: 5px 10px; font-size: 12.5px; font-weight: 800; letter-spacing: .03em; }
-.q-totals td { padding: 5px 6px; text-align: right; font-variant-numeric: tabular-nums; }
-.q-totals .rate-cell { width: 80px; color: var(--muted); }
-.quote .q-totals .rate { width: 70px; }
-.quote .q-totals .money { width: 130px; }
-.q-grand th, .q-grand td { border-top: 2px solid var(--ink); font-size: 15px; font-weight: 800; padding-top: 8px; }
+/* totals: under the Quantity to Subtotal columns, so every amount (and the gold grand total) ends where the Subtotal column ends */
+.q-totals { margin: 0 calc(var(--q-tools) + var(--q-rem)) 0 auto; border-collapse: collapse; width: 468px; max-width: calc(100% - var(--q-tools) - var(--q-rem)); }
+.q-totals th { text-align: right; padding: 4px 10px; font-size: .84em; font-weight: 800; letter-spacing: .03em; white-space: nowrap; }
+.q-totals td { padding: 3px 8px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.q-totals tr > * { border-bottom: 1px solid var(--line); }
+.q-totals .rate-cell { width: 84px; }
+.quote .q-totals .rate { width: 68px; text-align: right; text-align-last: right; }
+.quote .q-totals .money { width: 132px; }
+.q-totals .q-total > * { background: var(--q-gold-soft); border-bottom-color: transparent; }
+.q-totals .q-grand > * { background: var(--q-gold); font-size: 1.08em; font-weight: 800; padding-top: 7px; padding-bottom: 7px; border-bottom: 0; }
+.q-totals tr:nth-last-child(2) > * { border-bottom-color: transparent; }
 
-.q-terms ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.q-terms li { display: grid; grid-template-columns: 40px 1fr; gap: 8px; text-align: justify; }
-.q-terms p { margin: 0 0 6px; }
-.q-n { font-weight: 800; }
-.q-amount { font-weight: 800; font-size: 15px; }
-.q-mini { border-collapse: collapse; margin: 6px 0 8px; }
-.q-mini th, .q-mini td { padding: 4px 10px; border: 1px solid var(--line-2); font-size: 12.5px; text-align: left; }
+/* terms */
+.q-terms { margin-top: 30px; }
+.q-terms h3 { text-align: center; font-size: 1.15em; font-weight: 800; margin-bottom: 12px; }
+.q-terms ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: .92em; }
+.q-terms li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; }
+.q-terms p { margin: 0 0 5px; }
+.q-terms li > div > :last-child { margin-bottom: 0; }
+.q-n { font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.q-amount { text-align: center; font-size: 1.55em; font-weight: 800; margin: 8px 0 4px; font-variant-numeric: tabular-nums; }
+.q-centered { display: grid; justify-items: center; gap: 6px; margin: 4px 0 10px; }
+.q-mini { border-collapse: collapse; max-width: 100%; }
+.q-mini th, .q-mini td { padding: 2px 18px; text-align: center; }
 .q-mini th { font-weight: 800; }
+.q-mini th:first-child, .q-mini td:first-child { text-align: left; }
+.q-mini td.q-tools { padding: 0; }
+.quote .q-mini .rate { width: 64px; text-align: center; }
+.q-bank { grid-template-columns: max-content max-content; justify-content: center; gap: 2px 40px; margin: 6px 0 10px; font-weight: 700; }
 
-.q-signs { margin-top: 26px; display: grid; gap: 18px; }
-.q-sig { display: grid; gap: 2px; max-width: 360px; }
-.q-sigline { border-bottom: 1px solid var(--ink); height: 36px; margin-bottom: 4px; }
+/* signatures: the client's conforme, then who prepared and approved it */
+.q-signs { margin-top: 34px; display: grid; gap: 14px; justify-items: center; text-align: center; }
+.q-sig { display: grid; justify-items: center; gap: 1px; width: min(100%, 300px); }
+.q-sigline { width: 100%; border-bottom: 1px solid var(--ink); height: 46px; margin-bottom: 4px; }
 .q-signame { font-weight: 800; }
-.q-two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-.q-contact { color: var(--ink-2); }
+.q-conforme { display: grid; justify-items: center; width: 100%; }
+.q-conforme-label { font-weight: 800; letter-spacing: .08em; margin-top: 12px; }
+.q-contact { font-style: italic; color: var(--ink-2); font-size: .93em; }
+.q-two { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: min(100%, 680px); margin-top: 6px; }
+.q-two > div { display: grid; justify-items: center; }
+.q-siglabel { font-weight: 800; }
 
-@media (max-width: 1100px) {
+@media (max-width: 1360px) {
   .quote-split { grid-template-columns: minmax(0, 1fr); }
-  .quote-split > aside { position: static; }
+  .quote-split > aside { position: static; max-height: none; overflow: visible; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
+}
+@media (max-width: 900px) {
   .grid-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
   .compose-bar { flex-direction: column-reverse; align-items: stretch; text-align: center; }
-  .q-info-grid, .q-two { grid-template-columns: 1fr; }
-  .quote { padding: 14px; }
+  .q-head { grid-template-columns: 1fr auto; }
+  .q-title { grid-column: 1; text-align: left; }
+  .q-logo { grid-column: 2; }
+  .q-info, .q-two { grid-template-columns: 1fr; }
+  .q-info dt { text-align: left; }
+  .quote-status { order: 3; width: 100%; margin: 0; }
+  .view-quote .page-tools { width: auto; margin-left: auto; }
+  .view-quote .page-tools .label { display: none; }
+  .q-totals { margin-right: 0; max-width: 100%; }
+  .q-logo { width: 92px; }
+  .q-mini th, .q-mini td { padding: 2px 6px; }
+  .q-bank { gap: 2px 14px; }
 }
 
 /* ---- the PDF: only the quotation, always light, never anything internal ---------------------- */
-@page { size: A4; margin: 12mm 11mm; }
+@page { size: A4; margin: 12mm 10mm 13mm; }
 @media print {
   body[data-view="quote"] main > :not(.view-quote), .view-quote .page-head, .quote-split > aside,
-  .internal, .q-internal, .q-tools, col.c-tools, .no-print { display: none !important; }
+  .internal, .q-internal, .q-tools, col.c-tools, .no-print, .q-date-input { display: none !important; }
+  body[data-view="quote"] main { max-width: none; }
   .quote-split { display: block; }
-  .quote { border: 0; box-shadow: none; padding: 0; overflow: visible; font-size: 10.5px; color: #000; background: #fff; }
-  .q-head, .q-band { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .quote { border: 0; border-radius: 0; box-shadow: none; padding: 0; font-size: 9px; line-height: 1.35; color: #000; background: #fff; --q-tools: 0px; --q-rem: 12%; }
+  .quote, .quote * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .q-title h2 { font-size: 26px; }
+  .q-table-wrap { overflow: visible; }
   .q-table { min-width: 0; }
+  .q-table col.c-sku { width: 6%; } .q-table col.c-qty { width: 9%; } .q-table col.c-frq { width: 10%; } .q-table col.c-per { width: 11%; }
+  .q-table col.c-money { width: 12%; } .q-table col.c-sub { width: 13%; }
+  .q-table th { font-size: 8px; padding: 5px 6px; }
+  .q-table td { padding: 2.5px 6px; }
+  .q-line .q-part { padding-left: 24px; }
+  .q-group td:nth-child(2) { padding-left: 14px; }
   .q-table thead { display: table-header-group; }
-  .q-table tr { break-inside: avoid; }
-  .q-terms li, .q-totals, .q-signs { break-inside: avoid; }
+  .q-table tr, .q-terms li, .q-totals, .q-signs { break-inside: avoid; }
+  .q-section, .q-group { break-after: avoid; }
+  .q-totals { width: 55%; max-width: none; margin-top: 0; }
+  .q-logo { width: 104px; }
+  .q-terms { margin-top: 18px; }
+  .q-terms ol { gap: 5px; font-size: 8px; }
+  .q-signs { margin-top: 20px; }
   .ed:empty::before, .ed.is-blank::before { content: ""; }
   .ed, .cell-num, .cell-per { background: none !important; box-shadow: none !important; border: 0 !important; }
-  .cell-per, .cell-num { padding: 0; min-height: 0; }
-  .cell-date { display: none; }
-  .print-only { display: inline; }
-  .q-table th, .q-table td, .q-mini th, .q-mini td { border-color: #999; }
+  .quote .cell-per, .quote .cell-num { padding: 0; min-height: 0; height: auto; line-height: inherit; }
+  .q-mini th, .q-mini td { padding: 1px 16px; }
+  .q-contact-person .ed.is-blank, [data-hide-blank].is-blank, .q-discount.is-zero, .q-details.is-empty { display: none !important; }
 }

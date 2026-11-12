@@ -18,7 +18,7 @@
       setTimeout(function () { res(new Response(JSON.stringify(obj), { status: status || 200, headers: { "Content-Type": "application/json" } })); }, ms || 150);
     });
   };
-  var CE_INFO = { service: "anthropic-ce", version: "1.0.0", api: 1, runtime: "preview", model: "claude-opus-5-5", configured: true,
+  var CE_INFO = { service: "anthropic-ce", version: "1.2.0", api: 1, runtime: "preview", model: "claude-opus-5-5", configured: true,
     knowledge_base: { loaded: true, version: "preview", items: 3, projects: 0 }, cors: { allow_headers: ["Content-Type", "Authorization"] },
     limits: { max_upload_mb: 30, max_files: 8 } };
 
@@ -55,7 +55,7 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     var b = document.createElement("div");
-    b.className = "override-badge";
+    b.className = "override-badge no-print";
     b.textContent = "Preview mode: sample data, nothing is sent anywhere";
     b.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:200;box-shadow:var(--shadow-md);pointer-events:none";
     document.body.appendChild(b);

@@ -64,8 +64,10 @@ test("tranches, formats and old drafts", () => {
   const tr = D.tranches(doc, [{ label: "1st", pct: 0.7 }, { label: "2nd", pct: 0.3 }]);
   assert.equal(Math.round((tr[0].amount + tr[1].amount) * 100) / 100, D.totals(doc).grand);
   assert.equal(D.peso(34019.244), "₱34,019.24");
-  assert.equal(D.sectionNo(0), "1.0");
-  assert.equal(D.sectionNo(2), "3");
+  assert.equal(D.sku(0), "1");
+  assert.equal(D.sku(2, 0), "3.1");
+  assert.equal(D.sku(1, 2, 3), "2.3.4");
+  assert.equal(D.shortDate("2026-10-16"), "Oct 16, 2026");
   assert.equal(D.longDate("2026-11-10"), "November 10, 2026");
   assert.equal(D.normalize({}), null);
   const old = D.normalize({ sections: [{ name: "X", groups: [{ name: "Y", lines: [{ particular: "Z", qty: "2" }] }] }] });

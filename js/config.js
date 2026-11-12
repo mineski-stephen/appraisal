@@ -16,7 +16,7 @@
  */
 
 /* version: bump it with every release and add an entry to CHANGELOG.md (newest first, same number). */
-export const APP = { name: "Appraisal", key: "appraisal", version: "0.2.3", env: "live" };   // env: "live" | "test"
+export const APP = { name: "Appraisal", key: "appraisal", version: "0.3.1", env: "live" };   // env: "live" | "test"
 export const ENV_LABEL = APP.env === "test" ? "Test copy" : "";
 
 export const SERVICES = {   // hosted defaults, tried in order; `min` and `headers` are checked on every wake
@@ -46,8 +46,10 @@ export const RULES = {
   tranches: [{ label: "1st", pct: 0.7, when: "30 days from invoice date" }, { label: "2nd", pct: 0.3, when: "30 days from invoice date" }],
   // Each entity's registered name, as it appears in the quotation's terms. Fill GG's in when known.
   entities: {
-    PDEI: { company: "Pillar Digital E-Commerce Inc.", brand: "MINESKI" },
-    GG: { company: "", brand: "MINESKI" },
+    // `logo` is the mark on the quotation's header. img/mineski-philippines.svg is the official
+    // mineski-philippines-vertical.svg with its letters turned into outlines, so it needs no font.
+    PDEI: { company: "Pillar Digital E-Commerce Inc.", brand: "MINESKI", logo: "img/mineski-philippines.svg", logoAlt: "Mineski Philippines" },
+    GG: { company: "", brand: "MINESKI", logo: "img/mineski-philippines.svg", logoAlt: "Mineski Philippines" },
   },
   // Typical time for one draft (seconds), for the loader's estimate before any run has been timed.
   typicalSeconds: 90,

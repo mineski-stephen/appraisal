@@ -30,13 +30,13 @@ export function addDays(iso, days) {
 }
 
 /** A fresh document from the service's appraisal. */
-export function fromAppraisal(ap, { today, validDays = 7, entity = "PDEI", preparer = {}, inputs = {}, meta = null } = {}) {
+export function fromAppraisal(ap, { today, validDays = 7, entity = "PDEI", preparer = {}, inputs = {}, meta = null, tranches = [] } = {}) {
   const p = ap.project || {};
   return {
     v: DOC_VERSION,
     project: {
       title: String(p.title || "").trim(), code: "", client: String(p.client || "").trim(),
-      period: String(p.period || "").trim(), venue: String(p.venue || "").trim(), contact: "", designation: "",
+      period: String(p.period || "").trim(), venue: String(p.venue || "").trim(), po: "", contact: "", contact_email: "", designation: "",
       prepared: today, expires: addDays(today, validDays),
     },
     sections: (ap.sections || []).map((s) => ({
@@ -49,6 +49,7 @@ export function fromAppraisal(ap, { today, validDays = 7, entity = "PDEI", prepa
     discount: 0,
     entity: (ap.defaults || {}).entity || entity,
     bank: { name: "", account: "" },
+    tranches: tranches.map((t) => ({ label: t.label, pct: num(t.pct), when: t.when || "" })),
     prepared_by: { name: preparer.name || "", title: preparer.title || "", email: preparer.email || "" },
     approved_by: { name: "", title: "" },
     notes: {
@@ -111,8 +112,9 @@ export function totals(doc) {
     lines: lines.length };
 }
 
-/** Section number as on the template: "1.0" for the first, then "2", "3"... */
-export const sectionNo = (i) => (i === 0 ? "1.0" : String(i + 1));
+/** The SKU column: sections 1, 2, 3; sub-sections 1.1, 1.2; lines 1.1.1, 1.1.2. Every row gets
+ *  the next number in its place (the template's formula skipped and repeated numbers). */
+export const sku = (si, gi = null, li = null) => [si, gi, li].filter((x) => x !== null).map((x) => x + 1).join(".");
 
 /** Find a line (and its group) by id. */
 export function findLine(doc, id) {
@@ -158,13 +160,64 @@ export function addLine(group, after = null) {
   return line;
 }
 
-/** Payment tranches on the grand total. */
-export const tranches = (doc, list) => list.map((t) => ({ ...t, amount: r2(totals(doc).grand * t.pct) }));
+export function addGroup(section) {
+  const g = { name: "", lines: [] };
+  section.groups.push(g);
+  return g;
+}
+export function addSection(doc) {
+  const s = { name: "", groups: [{ name: "", lines: [] }] };
+  doc.sections.push(s);
+  return s;
+}
+/** Remove a sub-section or a section; returns what Undo needs. */
+export function removeGroup(section, group) {
+  const index = section.groups.indexOf(group);
+  if (index < 0) return null;
+  section.groups.splice(index, 1);
+  return { list: section.groups, item: group, index };
+}
+export function removeSection(doc, section) {
+  const index = doc.sections.indexOf(section);
+  if (index < 0) return null;
+  doc.sections.splice(index, 1);
+  return { list: doc.sections, item: section, index };
+}
+export const restoreItem = (r) => { r.list.splice(Math.min(r.index, r.list.length), 0, r.item); };
+
+/** Payment tranches on the grand total: the document's own (editable), else the given defaults. */
+export const tranches = (doc, list) => ((doc.tranches && doc.tranches.length ? doc.tranches : list) || [])
+  .map((t) => ({ ...t, amount: r2(totals(doc).grand * num(t.pct)) }));
+
+/** What a client would notice is missing, in the order it appears on the quotation. */
+export function missing(doc) {
+  const p = doc.project || {};
+  const out = [];
+  if (!p.title) out.push("Project name");
+  if (!p.code) out.push("Project code");
+  if (!p.client) out.push("Client's name");
+  if (!p.contact) out.push("Contact person");
+  if (allLines(doc).some((l) => !String(l.particular || "").trim())) out.push("A line without a particular");
+  if (allLines(doc).some((l) => !(clientUnit(l) > 0))) out.push("A line without a cost");
+  const share = tranches(doc, []).reduce((n, t) => n + num(t.pct), 0);
+  if (doc.tranches && doc.tranches.length && Math.abs(share - 1) > 0.0001) out.push(`Payment tranches add up to ${pct(share)}, not 100%`);
+  if (!(doc.bank || {}).name || !(doc.bank || {}).account) out.push("Bank details");
+  if (!(doc.prepared_by || {}).name) out.push("Prepared by");
+  if (!(doc.approved_by || {}).name) out.push("Approved by");
+  return out;
+}
 
 /** Money as on the template: ₱34,019.24. */
 export const peso = (x) => `₱${(Number(x) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 export const pct = (x) => `${Math.round((Number(x) || 0) * 1000) / 10}%`;
 export const qtyText = (x) => (Number.isInteger(Number(x)) ? String(Number(x)) : String(Math.round(Number(x) * 100) / 100));
+
+/** "2026-11-10" -> "Nov 10, 2026", as on the signed quotations. */
+export function shortDate(iso) {
+  const d = new Date(`${iso}T00:00:00Z`);
+  if (!iso || Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+}
 
 /** "2026-11-10" -> "November 10, 2026". */
 export function longDate(iso) {
@@ -188,6 +241,7 @@ export function normalize(doc) {
   doc.bank = doc.bank || { name: "", account: "" };
   doc.prepared_by = doc.prepared_by || { name: "", title: "", email: "" };
   doc.approved_by = doc.approved_by || { name: "", title: "" };
+  doc.tranches = Array.isArray(doc.tranches) ? doc.tranches.map((t) => ({ label: String(t.label || ""), pct: num(t.pct), when: String(t.when || "") })) : [];
   doc.notes = doc.notes || { assumptions: [], clarifications: [], excluded: [], checks: [], stats: {} };
   doc.notes.removed = doc.notes.removed || [];
   return doc;

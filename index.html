@@ -122,10 +122,10 @@
             <span>Or paste the brief <em>(optional with a file)</em></span>
             <textarea id="briefText" rows="5" placeholder="Paste the brief, the client's e-mail or your notes from the call…"></textarea>
           </label>
-        </div>
 
-        <details class="card card-pad inputs" open>
-          <summary class="subhead">Budget and scale <em class="muted">(optional: they override the brief)</em></summary>
+          <details class="more inputs" open>
+          <summary><span>Budget and scale <em class="muted">(optional: they override the brief)</em></span></summary>
+          <div class="inputs-body">
           <div class="grid-inputs">
             <label class="field"><span>Client budget (PHP)</span><input type="text" id="in-budget" inputmode="decimal" placeholder="e.g. 1,500,000"></label>
             <label class="field"><span>The budget is</span>
@@ -141,7 +141,9 @@
           </div>
           <label class="field"><span>Notes for the draft <em>(what the client said, what to include or leave out)</em></span>
             <textarea id="in-notes" rows="3" placeholder="e.g. Venue is provided by the mall. Two hosts, no KOLs. Keep it under 1.5M."></textarea></label>
-        </details>
+          </div>
+          </details>
+        </div>
 
         <div class="compose-bar">
           <p class="hint" id="composeHint" aria-live="polite">Add the client's brief to get started.</p>
@@ -164,9 +166,10 @@
     </section>
 
     <!-- The drafted quotation -->
-    <section class="view view-quote" data-view="quote" aria-label="Quotation">
+    <section class="view view-quote wide" data-view="quote" aria-label="Quotation">
       <div class="page-head no-print">
-        <button type="button" class="back" id="newBtn"><span class="i" data-icon="arrowLeft" aria-hidden="true"></span> New estimate</button>
+        <a class="back" id="newBtn" href="#/"><span class="i" data-icon="arrowLeft" aria-hidden="true"></span> Back to the brief</a>
+        <p class="quote-status" id="quoteStatus" aria-live="polite"></p>
         <div class="page-tools">
           <button type="button" class="btn" id="costsBtn" aria-pressed="false"><span class="i" data-icon="eye" aria-hidden="true"></span> <span class="label">Show costs</span></button>
           <button type="button" class="btn btn-primary" id="pdfBtn"><span class="i" data-icon="download" aria-hidden="true"></span> <span class="label">Save as PDF</span></button>
@@ -196,8 +199,8 @@
           </div>
         </section>
 
-        <section class="card set-card" aria-labelledby="prepTitle">
-          <h2 id="prepTitle">Your details on quotations</h2>
+        <section class="card set-card" aria-labelledby="prepHead">
+          <h2 id="prepHead">Your details on quotations</h2>
           <p class="set-sub">Filled in under "Prepared by" on new quotations. You can still change them on each one.</p>
           <label class="field"><span>Name</span><input type="text" id="prepName" autocomplete="name"></label>
           <label class="field"><span>Designation</span><input type="text" id="prepTitle" placeholder="e.g. Accounts Manager, PDEI"></label>
@@ -227,7 +230,7 @@
         <section class="card set-card" aria-labelledby="localTitle">
           <h2 id="localTitle">This browser</h2>
           <p class="set-sub">Clear your quotation details, the saved wait times and the cost view setting. Your login and theme are kept. A drafted quotation stays in this tab until you close it or log out.</p>
-          <div class="row"><button type="button" class="btn btn-ghost" id="clearLocal">Clear local data</button></div>
+          <div class="row"><button type="button" class="btn" id="clearLocal">Clear local data</button></div>
         </section>
       </div>
     </section>

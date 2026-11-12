@@ -289,7 +289,7 @@ async function draft() {
     paintStages("price", "");
     remember((Date.now() - started) / 1000);
     S.doc = D.fromAppraisal(out.appraisal, { today: todayISO(), validDays: RULES.validDays, entity: inputs.entity || "PDEI",
-      preparer: settings.preparer(), inputs, meta: out.meta });
+      preparer: settings.preparer(), inputs, meta: out.meta, tranches: RULES.tranches });
     saveDraft();
     S.run = null;
     location.hash = "#/quote";
@@ -348,10 +348,14 @@ function paintNotes() {
   const draftLine = d && d.cost_usd != null ? h("p", { class: "hint" },
     `This draft: ${d.seconds}s, about US$${d.cost_usd.toFixed(2)} (${(d.usage.output_tokens || 0).toLocaleString()} tokens written).`) : null;
   const estimates = D.allLines(S.doc).filter((l) => (l.source || {}).kind === "estimate").length;
+  const blank = D.missing(S.doc);
+  $("#quoteStatus").replaceChildren(h("b", null, fmt.peso(t.grand)), " grand total ",
+    b ? h("span", { class: b.over ? "warn-text" : "ok-text" }, b.over ? `${fmt.peso(-b.left)} over budget` : `${fmt.peso(b.left)} under budget`) : "");
+  const card = (title, items, open = false) => h("details", { class: "card card-pad disclosure", open }, h("summary", { class: "subhead" }, `${title} (${items.length})`), list(items));
   $("#notes").replaceChildren(
     h("section", { class: "card card-pad stack" },
       h("h2", { class: "subhead" }, "Internal only"),
-      h("dl", { class: "facts" },
+      h("dl", { class: "kv" },
         h("dt", null, "Our cost"), h("dd", { class: "num" }, fmt.peso(t.base)),
         h("dt", null, "Gross profit"), h("dd", { class: "num" }, `${fmt.peso(t.gp)} (${D.pct(t.gp_margin)})`),
         h("dt", null, "Grand total"), h("dd", { class: "num" }, fmt.peso(t.grand))),
@@ -360,12 +364,13 @@ function paintNotes() {
       estimates ? h("p", { class: "warn-text" }, `${estimates} ${estimates === 1 ? "line is an estimate" : "lines are estimates"} with no price history. Get quotes before sending.`) : null,
       h("p", { class: "hint" }, "Costs, markups and these notes never appear in the PDF."),
       draftLine),
-    removed.length ? h("details", { class: "card card-pad", open: true }, h("summary", { class: "subhead" }, `Left out to fit the budget (${removed.length})`),
+    blank.length ? card("Still to fill in before sending", blank, true) : null,
+    removed.length ? h("details", { class: "card card-pad disclosure", open: true }, h("summary", { class: "subhead" }, `Left out to fit the budget (${removed.length})`),
       h("ul", { class: "removed-list" }, ...removed)) : null,
-    h("details", { class: "card card-pad", open: true }, h("summary", { class: "subhead" }, `Questions for the client (${n.clarifications.length})`), list(n.clarifications)),
-    h("details", { class: "card card-pad" }, h("summary", { class: "subhead" }, `Assumptions (${n.assumptions.length})`), list(n.assumptions)),
-    h("details", { class: "card card-pad" }, h("summary", { class: "subhead" }, `Left out (${n.excluded.length})`), list(n.excluded)),
-    h("details", { class: "card card-pad" }, h("summary", { class: "subhead" }, `Checks (${(n.checks || []).length})`), list((n.checks || []).map((c) => c.text))));
+    card("Questions for the client", n.clarifications, true),
+    card("Assumptions", n.assumptions),
+    card("Left out", n.excluded),
+    card("Checks", (n.checks || []).map((c) => c.text)));
 }
 
 async function printPdf() {
@@ -377,14 +382,18 @@ async function printPdf() {
       confirm: "Save anyway", busyText: "Opening…" });
     if (!ok) return;
   }
-  const title = document.title;
-  const p = S.doc.project;
-  document.title = `Quotation - ${[p.code, p.title].filter(Boolean).join(" ") || "Mineski"}`;   // the PDF's file name
-  for (const el of $$(".ed:empty")) el.classList.add("is-blank");
-  const done = () => { document.title = title; removeEventListener("afterprint", done); };
-  addEventListener("afterprint", done);
   window.print();
 }
+// Ctrl+P prints the same thing as the button: blank fields print empty, and the PDF is named after the project.
+let titleBeforePrint = "";
+addEventListener("beforeprint", () => {
+  if (S.view !== "quote" || !S.doc) return;
+  quote.prepPrint();
+  titleBeforePrint = document.title;
+  const p = S.doc.project;
+  document.title = `Quotation - ${[p.code, p.title].filter(Boolean).join(" ") || "Mineski"}`;   // the PDF's file name
+});
+addEventListener("afterprint", () => { if (titleBeforePrint) document.title = titleBeforePrint; titleBeforePrint = ""; });
 
 function startOver() {
   if (!S.doc) { location.hash = "#/"; return; }
@@ -428,7 +437,6 @@ drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove
 $("#resumeOpen").addEventListener("click", () => { location.hash = "#/quote"; });
 $("#resumeDiscard").addEventListener("click", () => startOver());
 $("#pdfBtn").addEventListener("click", () => printPdf());
-$("#newBtn").addEventListener("click", () => startOver());
 $("#costsBtn").addEventListener("click", () => { S.costs = !S.costs; store("local", KEY.costs, S.costs || undefined); renderQuote(); });
 onAnyService(() => {
   paintBlock();
@@ -454,6 +462,11 @@ auth.startClock(() => { renderHeader(); settingsView.tick(); });
   }
   restoreCompose();
   loadDraft();
+  // Developers only: ?preview=quote opens straight on the sample quotation (see tests/preview-shim.js).
+  if (window.MINESKI_PREVIEW && params.get("preview") === "quote" && !S.doc) {
+    const out = await fetch("tests/fixture.json").then((r) => r.json()).catch(() => null);
+    if (out) { S.doc = D.fromAppraisal(out.appraisal, { today: todayISO(), validDays: RULES.validDays, preparer: settings.preparer(), meta: out.meta, tranches: RULES.tranches }); saveDraft(); }
+  }
   if (auth.currentToken()) {
     auth.loadUser().then((u) => { S.user = u; renderHeader(); if (S.view === "settings") settingsView.paint(); }).catch(() => {});
   } else if (auth.hadSession() && !S.loginNote) {
