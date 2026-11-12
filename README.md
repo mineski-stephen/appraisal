@@ -1,5 +1,7 @@
 # Appraisal
 
+<img src="img/appraisal-icon.svg" alt="Appraisal logo" width="96" align="right">
+
 Turns a client brief into a first-draft cost estimate, shown as a Mineski **project quotation**
 (the "Quotation (Automated)" layout) that you edit in place and save as a PDF.
 
@@ -26,8 +28,12 @@ Browser: static page (GitHub Pages, no build step, ES modules)
                                     lines, prices them from kb.json, returns the priced draft
 ```
 
-The page holds no prices, markups or keys. The service (`../anthropic-ce`) holds the Anthropic
+The page holds no prices, markups or keys. The service (`../tech/anthropic-ce`) holds the Anthropic
 key and the knowledge base, and only answers people who can open the CE Line Items table in Lark.
+
+`internal/` holds the CE data project that builds the knowledge base: the CE workbooks, signed CEs,
+invoices, Lark pulls, the pipeline, its outputs and the hand-off notes. It is internal and
+confidential, and `.gitignore` keeps all of it out of the repo. Start at `internal/hand-off/README.md`.
 
 | File | Purpose |
 | ---- | ------- |
@@ -79,6 +85,6 @@ out ends it for every Mineski tool in this browser.
 | ------- | ---------- |
 | "Appraisal can't reach its estimate service right now." | Settings > Connections. If it says "Not set", the service address in `js/config.js` is missing. |
 | "Your Lark account doesn't have access to the CE Line Items table." | Ask the Base owner to share it with you, then log in again. |
-| "The appraisal service has no price knowledge base yet." | The admin uploads `kb.json` (see `../anthropic-ce/README.md`). |
+| "The appraisal service has no price knowledge base yet." | The admin uploads `kb.json` (see `../tech/anthropic-ce/README.md`). |
 | "This address (…) isn't registered on the Lark app." | Add the address to the Lark app's Redirect URLs. |
 | Lines marked Estimate | No past price for that item: get a supplier quote before sending. |

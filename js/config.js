@@ -16,7 +16,7 @@
  */
 
 /* version: bump it with every release and add an entry to CHANGELOG.md (newest first, same number). */
-export const APP = { name: "Appraisal", key: "appraisal", version: "0.2.1", env: "live" };   // env: "live" | "test"
+export const APP = { name: "Appraisal", key: "appraisal", version: "0.2.3", env: "live" };   // env: "live" | "test"
 export const ENV_LABEL = APP.env === "test" ? "Test copy" : "";
 
 export const SERVICES = {   // hosted defaults, tried in order; `min` and `headers` are checked on every wake

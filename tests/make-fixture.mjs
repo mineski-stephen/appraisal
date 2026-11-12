@@ -1,7 +1,7 @@
 // Builds tests/fixture.json: a MADE-UP appraisal (invented items and prices) for ?preview, priced
-// by the service's own code (../anthropic-ce/src/appraise.js). Run: node tests/make-fixture.mjs
+// by the service's own code (../tech/anthropic-ce/src/appraise.js). Run: node tests/make-fixture.mjs
 import { writeFileSync } from "node:fs";
-import { price, readInputs } from "../../anthropic-ce/src/appraise.js";
+import { price, readInputs } from "../../tech/anthropic-ce/src/appraise.js";
 
 const KB = { version: "sample", items: [
   { id: "S-1", name: "Account Management", cat: "Manpower", per: "per project", cost: 20000, low: 15000, high: 25000, projects: 40, markup: 0.1, method: "Internal" },

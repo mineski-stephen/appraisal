@@ -17,6 +17,9 @@
   <meta name="theme-color" content="#F3F7F7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0E1716" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="img/appraisal-icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/appraisal-icon-32.png">
+  <link rel="apple-touch-icon" href="img/appraisal-icon-180.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap">
@@ -46,6 +49,7 @@
 
   <header class="topbar">
     <a class="brand" href="#/" aria-label="Appraisal home">
+      <img class="brand-mark" src="img/appraisal-icon.svg" alt="" width="34" height="34">
       <span class="brand-name">Appraisal</span>
       <span class="brand-ver" id="appVersion"></span>
       <span class="env" id="envBadge" hidden></span>
@@ -80,6 +84,7 @@
     <!-- Logged out -->
     <section class="view view-login" data-view="login">
       <div class="login-card">
+        <img class="login-mark" src="img/appraisal-icon.svg" alt="" width="88" height="88">
         <h1>Appraisal</h1>
         <p class="lede" id="loginVersion"></p>
         <button type="button" class="btn btn-primary btn-lg" id="loginBtn"><span class="label">Log in with Lark</span></button>

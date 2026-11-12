@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="t">
+  <title id="t">Appraisal</title>
+  <!-- Tile: pale teal, the Appraisal brand (#0B7D6E) at its softest -->
+  <rect width="1024" height="1024" rx="184" fill="#DCF1ED"/>
+  <g transform="translate(-56 8) rotate(45 512 512)">
+    <!-- A price tag: deep teal ink, its top half in the brand teal for depth -->
+    <path d="M220 512 L400 340 H840 V684 H400 Z" fill="#0F3B37" stroke="#0F3B37" stroke-width="60" stroke-linejoin="round"/>
+    <path d="M220 512 L400 340 H840 V512 Z" fill="#0B7D6E" stroke="#0B7D6E" stroke-width="60" stroke-linejoin="round"/>
+    <!-- the punched hole, and two estimate lines on the tag -->
+    <circle cx="350" cy="512" r="50" fill="#DCF1ED"/>
+    <path d="M500 438 H760 M500 586 H680" stroke="#DCF1ED" stroke-width="52" stroke-linecap="round"/>
+    <!-- The one orange accent: the tag's string -->
+    <path d="M350 512 C 262 512 186 474 160 360" fill="none" stroke="#F58D36" stroke-width="44" stroke-linecap="round"/>
+  </g>
+</svg>
