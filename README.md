@@ -5,16 +5,18 @@
 Turns a client brief into a first-draft cost estimate, shown as a Mineski **project quotation**
 (drawn like the signed quotations sent to clients) that you edit in place and save as a PDF.
 
-1. **Add the brief.** PDFs, images or text files, or paste it. Optionally set the client budget,
-   VAT, billing entity, event days, audience, cities, talents and notes; these override the brief.
+1. **Add the brief.** Drop PDFs, images or text files anywhere on the page, paste screenshots or
+   text with Ctrl+V, or type it (the same drop zone as Fetch's). Optionally open "Budget and scale"
+   to set the client budget, VAT, billing entity, event days, audience, cities, talents and notes;
+   these override the brief. Ctrl+Enter drafts.
 2. **Draft the estimate.** Usually one to two minutes. Claude chooses the sections and lines;
    prices come from Mineski's past CEs (the price knowledge base), not from the AI.
 3. **Check and edit.** Every cell is editable, and you can add or remove sections, sub-sections,
    lines and payment tranches (each removal has an Undo). **Show costs** reveals each line's
    internal cost, markup and where the price came from. Lines marked **Estimate** have no price
-   history: get a quote. The side panel shows our cost, gross profit, the budget check, what is
-   still blank (project code, contact person, bank details, signatories), questions for the
-   client, assumptions and what was left out.
+   history: get a quote. The notes card above the sheet shows our cost, gross profit and the budget
+   check, and a chip for each list: what is still blank (project code, contact person, bank
+   details, signatories), questions for the client, assumptions and what was left out.
 4. **Save as PDF.** Uses the browser's print dialog ("Save as PDF"; Ctrl+P does the same). Only
    the quotation prints: costs, markups and the notes never appear in it.
 

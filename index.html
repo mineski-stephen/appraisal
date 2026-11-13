@@ -102,28 +102,34 @@
 
     <!-- The task: a brief in, a draft estimate out -->
     <section class="view" data-view="compose" aria-labelledby="composeTitle">
-      <div class="mid compose">
-        <div class="banner callout" id="resumeBanner" hidden>
-          <span class="i" data-icon="clock" aria-hidden="true"></span>
-          <div>You have a drafted quotation open: <b id="resumeTitle"></b></div>
-          <button type="button" class="btn btn-sm btn-primary" id="resumeOpen">Open it</button>
-          <button type="button" class="btn btn-sm btn-ghost" id="resumeDiscard">Discard</button>
-        </div>
-        <h1 class="sr-only" id="composeTitle">New estimate</h1>
-        <div class="card hero-card stack">
-          <label class="drop" id="dropZone">
-            <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.txt,.md,.csv" class="sr-only">
-            <span class="i" data-icon="upload" aria-hidden="true"></span>
-            <span><b>Add the client's brief</b><br><span class="hint">PDF, images or text files. Drop them here or click to choose.</span></span>
-          </label>
-          <ul class="chips file-list" id="fileList" hidden></ul>
-          <p class="form-error" id="fileNote" hidden></p>
-          <label class="field">
-            <span>Or paste the brief <em>(optional with a file)</em></span>
-            <textarea id="briefText" rows="5" placeholder="Paste the brief, the client's e-mail or your notes from the call…"></textarea>
-          </label>
+      <h1 class="sr-only" id="composeTitle">New estimate</h1>
+      <div class="hero">
+        <p class="lede">The client's brief: PDFs, screenshots or text files - or just paste it.</p>
+      </div>
 
-          <details class="more inputs" open>
+      <div class="banner callout" id="resumeBanner" hidden>
+        <span class="i" data-icon="clock" aria-hidden="true"></span>
+        <div>You have a drafted quotation open: <b id="resumeTitle"></b></div>
+        <button type="button" class="btn btn-sm btn-primary" id="resumeOpen">Open it</button>
+        <button type="button" class="btn btn-sm btn-ghost" id="resumeDiscard">Discard</button>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <svg class="dz-outline" aria-hidden="true" preserveAspectRatio="none"><rect x="1.5" y="1.5" rx="26" ry="26"/></svg>
+        <div class="dz-top">
+          <div class="dz-icon" aria-hidden="true"><span class="i" data-icon="upload"></span></div>
+          <div class="dz-copy">
+            <p class="dz-title"><button type="button" class="dz-upload" id="browseBtn">Upload the client's brief</button></p>
+            <p class="dz-sub">PDF, images or text, up to 8 files. Paste screenshots with <kbd>Ctrl</kbd>+<kbd>V</kbd>.</p>
+          </div>
+        </div>
+        <ul class="files" id="fileList" aria-label="Added files"></ul>
+        <p class="form-error" id="fileNote" hidden></p>
+        <label class="sr-only" for="briefText">Brief text</label>
+        <textarea id="briefText" rows="6" placeholder="…or paste the brief, the client's e-mail or your notes from the call."></textarea>
+        <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.txt,.md,.csv" hidden>
+
+        <details class="more inputs" open>
           <summary><span>Budget and scale <em class="muted">(optional: they override the brief)</em></span></summary>
           <div class="inputs-body">
           <div class="grid-inputs">
@@ -143,14 +149,15 @@
             <textarea id="in-notes" rows="3" placeholder="e.g. Venue is provided by the mall. Two hosts, no KOLs. Keep it under 1.5M."></textarea></label>
           </div>
           </details>
-        </div>
 
-        <div class="compose-bar">
-          <p class="hint" id="composeHint" aria-live="polite">Add the client's brief to get started.</p>
-          <button type="button" class="btn btn-primary btn-lg" id="goBtn" disabled>
-            <span class="i" data-icon="sparkles" aria-hidden="true"></span> <span class="label">Draft the estimate</span>
-          </button>
-        </div>
+        <div class="dz-drop" aria-hidden="true"><span class="i" data-icon="upload"></span><span>Release to add</span></div>
+      </div>
+
+      <div class="compose-bar">
+        <p class="hint" id="composeHint" aria-live="polite">Add the client's brief to get started.</p>
+        <button type="button" class="btn btn-primary btn-lg" id="goBtn" disabled>
+          <span class="i" data-icon="sparkles" aria-hidden="true"></span> <span class="label">Draft the estimate</span>
+        </button>
       </div>
     </section>
 
@@ -166,7 +173,7 @@
     </section>
 
     <!-- The drafted quotation -->
-    <section class="view view-quote wide" data-view="quote" aria-label="Quotation">
+    <section class="view view-quote" data-view="quote" aria-label="Quotation">
       <div class="page-head no-print">
         <a class="back" id="newBtn" href="#/"><span class="i" data-icon="arrowLeft" aria-hidden="true"></span> Back to the brief</a>
         <p class="quote-status" id="quoteStatus" aria-live="polite"></p>
@@ -175,10 +182,8 @@
           <button type="button" class="btn btn-primary" id="pdfBtn"><span class="i" data-icon="download" aria-hidden="true"></span> <span class="label">Save as PDF</span></button>
         </div>
       </div>
-      <div class="split quote-split">
-        <article class="quote" id="quote" aria-label="Project quotation"></article>
-        <aside class="no-print" id="notes" aria-label="Notes for you"></aside>
-      </div>
+      <section class="card quote-notes no-print" id="notes" aria-label="Notes for you"></section>
+      <article class="quote" id="quote" aria-label="Project quotation"></article>
     </section>
 
     <!-- Settings -->

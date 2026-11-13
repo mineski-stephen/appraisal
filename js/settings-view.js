@@ -72,7 +72,7 @@ export function createSettingsView(ctx) {
       kb ? h("li", null, h("span", { class: `dot ${kb.loaded ? "is-ok" : "is-warn"}` }),
         h("span", { class: "status-text" }, h("b", null, "Price knowledge base"),
           h("span", null, kb.loaded ? `${fmt.plural(kb.items, "catalogue item")} · ${fmt.plural(kb.projects, "past CE")} · built ${kb.version}`
-            : "Not uploaded yet. Ask the admin to add kb.json to the estimate service."))) : null);
+            : "Not uploaded yet. Ask the admin to add kb.json to the estimate service."))) : "");   // "", not null: replaceChildren prints null as text
     $("#envNote").hidden = !ENV_LABEL;
     $("#envNote").textContent = ENV_LABEL ? `Appraisal is in its ${ENV_LABEL.toLowerCase()} setup. To go live, set APP.env in js/config.js.` : "";
   }

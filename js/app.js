@@ -32,6 +32,7 @@ const S = {
   costs: !!recall("local", KEY.costs),   // show internal costs on screen
   run: null,              // the draft in flight: { abort, started, eta }
   user: null, loginNote: "", returnTo: "",
+  notesOpen: "blank",     // which list in the notes card is open (null: none)
 };
 
 const todayISO = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
@@ -203,13 +204,28 @@ function restoreCompose() {
   for (const [id, v] of Object.entries(c.vals || {})) if ($(`#in-${id}`)) $(`#in-${id}`).value = v;
 }
 
+/* File chips as on Fetch's drop zone: a kind badge (or the picture itself), the name and size, and remove. */
+const KIND = { pdf: ["pdf", "PDF"], png: ["image", "IMG"], jpg: ["image", "IMG"], jpeg: ["image", "IMG"], webp: ["image", "IMG"], gif: ["image", "IMG"],
+  txt: ["text", "TXT"], md: ["text", "MD"], csv: ["sheet", "CSV"] };
+const kindOf = (f) => KIND[(f.name.split(".").pop() || "").toLowerCase()] || ["text", "FILE"];
+const sizeText = (b) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
+const thumbs = new WeakMap();
 function renderFiles() {
   const lim = limits();
   const total = S.files.reduce((n, f) => n + f.size, 0);
-  $("#fileList").replaceChildren(...S.files.map((f, i) => h("li", { class: "chip" }, ic("file"), h("span", null, f.name),
-    h("span", { class: "muted" }, `${(f.size / 1048576).toFixed(1)} MB`),
-    h("button", { type: "button", class: "icon-btn plain icon-sm", "aria-label": `Remove ${f.name}`, title: "Remove", onclick: () => { S.files.splice(i, 1); renderFiles(); } }, ic("x")))));
-  $("#fileList").hidden = !S.files.length;
+  $("#fileList").replaceChildren(...S.files.map((f, i) => {
+    const [kind, label] = kindOf(f);
+    if (kind === "image" && !thumbs.has(f)) thumbs.set(f, URL.createObjectURL(f));
+    return h("li", { class: `file kind-${kind}` },
+      kind === "image" ? h("img", { class: "file-thumb", src: thumbs.get(f), alt: "" }) : h("span", { class: "file-badge" }, label),
+      h("span", { class: "file-info" }, h("span", { class: "file-name", title: f.name }, f.name), h("span", { class: "file-size" }, sizeText(f.size))),
+      h("button", { type: "button", class: "file-x", "aria-label": `Remove ${f.name}`, title: "Remove", onclick: (e) => {
+        e.stopPropagation();
+        const [gone] = S.files.splice(i, 1);
+        if (thumbs.has(gone)) { URL.revokeObjectURL(thumbs.get(gone)); thumbs.delete(gone); }
+        renderFiles();
+      } }, ic("x")));
+  }));
   const over = total > lim.maxUploadMb * 1048576 || S.files.length > lim.maxFiles;
   $("#fileNote").textContent = over ? `That's more than ${lim.maxFiles} files or ${lim.maxUploadMb} MB. Remove a file first.` : "";
   $("#fileNote").hidden = !over;
@@ -221,14 +237,20 @@ function paintGo() {
   const lim = limits();
   const over = S.files.reduce((n, f) => n + f.size, 0) > lim.maxUploadMb * 1048576 || S.files.length > lim.maxFiles;
   $("#goBtn").disabled = !has || over;
+  $("#dropzone").classList.toggle("has-content", !!has);
   $("#composeHint").textContent = has ? `Usually about ${fmt.duration(estimate(S.files) * 1000).replace("0m", "1m")}. You can edit everything after.`
     : "Add the client's brief to get started.";
 }
 
-function addFiles(list) {
+function addFiles(list, { pasted = false } = {}) {
   const bad = [];
-  for (const f of list) {
+  for (let f of list) {
+    if (!f || !f.size) continue;
     if (!acceptable(f)) { bad.push(f.name); continue; }
+    if (pasted && /^image\.(png|jpe?g|gif|webp)$/i.test(f.name)) {   // a pasted screenshot gets a name worth reading
+      const t = new Date();
+      f = new File([f], `Pasted screenshot ${t.getHours()}-${String(t.getMinutes()).padStart(2, "0")}-${String(t.getSeconds()).padStart(2, "0")}.${f.name.split(".").pop()}`, { type: f.type, lastModified: f.lastModified });
+    }
     if (!S.files.some((x) => x.name === f.name && x.size === f.size)) S.files.push(f);
   }
   if (bad.length) toast(`${bad.join(", ")} can't be read here. Save ${bad.length === 1 ? "it" : "them"} as a PDF, then add ${bad.length === 1 ? "it" : "them"} again.`, { type: "warn" });
@@ -239,6 +261,7 @@ function renderCompose() {
   $("#resumeBanner").hidden = !S.doc;
   if (S.doc) $("#resumeTitle").textContent = S.doc.project.title || "Untitled quotation";
   renderFiles();
+  requestAnimationFrame(autosize);
   if (!ceService.isFresh()) ceService.wake();
 }
 
@@ -334,9 +357,6 @@ function paintNotes() {
   const n = S.doc.notes;
   const t = D.totals(S.doc);
   const b = D.budgetCheck(S.doc);
-  const budgetLine = b ? h("p", { class: b.over ? "warn-text" : "ok-text" },
-    b.over ? `${fmt.peso(-b.left)} over the ${fmt.peso(b.amount)} budget. Lower markups first, then unit costs, then scope.`
-      : `Within the ${fmt.peso(b.amount)} budget (${fmt.peso(b.left)} to spare).`) : null;
   const steps = n.fit && n.fit.steps && n.fit.steps.length ? h("p", { class: "hint" }, `To fit the budget: ${n.fit.steps.join(" ")}`) : null;
   const removed = (n.removed || []).map((r, i) => h("li", null, `${r.line.particular} (${fmt.peso(D.lineTotal(r.line))}) `,
     h("button", { type: "button", class: "btn btn-sm btn-ghost", onclick: () => {
@@ -351,26 +371,37 @@ function paintNotes() {
   const blank = D.missing(S.doc);
   $("#quoteStatus").replaceChildren(h("b", null, fmt.peso(t.grand)), " grand total ",
     b ? h("span", { class: b.over ? "warn-text" : "ok-text" }, b.over ? `${fmt.peso(-b.left)} over budget` : `${fmt.peso(b.left)} under budget`) : "");
-  const card = (title, items, open = false) => h("details", { class: "card card-pad disclosure", open }, h("summary", { class: "subhead" }, `${title} (${items.length})`), list(items));
-  $("#notes").replaceChildren(
-    h("section", { class: "card card-pad stack" },
+  // The notes sit in one card above the sheet (the page keeps the family's 1200px width, so there is
+  // no room beside it). Each list is a chip; one opens at a time, and the choice survives redraws.
+  const lists = [
+    ["blank", "Still to fill in", blank.length, () => list(blank), true],
+    ["removed", "Left out to fit the budget", removed.length, () => h("ul", { class: "removed-list" }, ...removed), true],
+    ["questions", "Questions for the client", n.clarifications.length, () => list(n.clarifications)],
+    ["assumptions", "Assumptions", n.assumptions.length, () => list(n.assumptions)],
+    ["excluded", "Left out", n.excluded.length, () => list(n.excluded)],
+    ["checks", "Checks", (n.checks || []).length, () => list((n.checks || []).map((c) => c.text))],
+  ].filter(([, , count, , onlyIfAny]) => count || !onlyIfAny);
+  if (!lists.some(([key]) => key === S.notesOpen)) S.notesOpen = null;
+  const panel = h("div", { class: "qn-panel", id: "notesPanel", role: "region", hidden: !S.notesOpen });
+  const open = lists.find(([key]) => key === S.notesOpen);
+  if (open) { panel.setAttribute("aria-label", open[1]); panel.append(open[3]()); }
+  const chips = lists.map(([key, label, count]) => h("button", { type: "button", class: `chip-opt${key === "blank" ? " is-warn" : ""}`,
+    "aria-expanded": String(key === S.notesOpen), "aria-controls": "notesPanel", disabled: !count,
+    onclick: () => { S.notesOpen = S.notesOpen === key ? null : key; paintNotes(); } }, label, h("span", { class: "count" }, String(count))));
+  $("#notes").replaceChildren(...[   // (replaceChildren would print a null as the word "null")
+    h("div", { class: "qn-top" },
       h("h2", { class: "subhead" }, "Internal only"),
-      h("dl", { class: "kv" },
-        h("dt", null, "Our cost"), h("dd", { class: "num" }, fmt.peso(t.base)),
-        h("dt", null, "Gross profit"), h("dd", { class: "num" }, `${fmt.peso(t.gp)} (${D.pct(t.gp_margin)})`),
-        h("dt", null, "Grand total"), h("dd", { class: "num" }, fmt.peso(t.grand))),
-      budgetLine,
-      steps,
-      estimates ? h("p", { class: "warn-text" }, `${estimates} ${estimates === 1 ? "line is an estimate" : "lines are estimates"} with no price history. Get quotes before sending.`) : null,
-      h("p", { class: "hint" }, "Costs, markups and these notes never appear in the PDF."),
-      draftLine),
-    blank.length ? card("Still to fill in before sending", blank, true) : null,
-    removed.length ? h("details", { class: "card card-pad disclosure", open: true }, h("summary", { class: "subhead" }, `Left out to fit the budget (${removed.length})`),
-      h("ul", { class: "removed-list" }, ...removed)) : null,
-    card("Questions for the client", n.clarifications, true),
-    card("Assumptions", n.assumptions),
-    card("Left out", n.excluded),
-    card("Checks", (n.checks || []).map((c) => c.text)));
+      h("dl", { class: "qn-figs" },
+        h("div", null, h("dt", null, "Our cost"), h("dd", null, fmt.peso(t.base))),
+        h("div", null, h("dt", null, "Gross profit"), h("dd", null, `${fmt.peso(t.gp)} (${D.pct(t.gp_margin)})`)),
+        b ? h("div", null, h("dt", null, "Budget"), h("dd", { class: b.over ? "warn-text" : "ok-text" }, b.over ? `${fmt.peso(-b.left)} over` : `${fmt.peso(b.left)} to spare`)) : null)),
+    b && b.over ? h("p", { class: "warn-text" }, `${fmt.peso(-b.left)} over the ${fmt.peso(b.amount)} budget. Lower markups first, then unit costs, then scope.`) : null,
+    steps,
+    estimates ? h("p", { class: "warn-text" }, `${estimates} ${estimates === 1 ? "line is an estimate" : "lines are estimates"} with no price history. Get quotes before sending.`) : null,
+    h("div", { class: "chips qn-chips" }, ...chips),
+    panel,
+    h("p", { class: "hint" }, "Costs, markups and these notes never appear in the PDF.", draftLine ? ` ${draftLine.textContent}` : ""),
+  ].filter(Boolean));
 }
 
 async function printPdf() {
@@ -427,13 +458,59 @@ $("#loginBtn").addEventListener("click", () => login());
 $("#reloadBtn").addEventListener("click", () => location.reload());
 $("#goBtn").addEventListener("click", () => draft());
 $("#cancelBtn").addEventListener("click", () => { if (S.run) S.run.abort(); });
-$("#briefText").addEventListener("input", () => { paintGo(); saveCompose(); });
+/* The brief box grows with what's pasted into it, up to about half the window. */
+function autosize() {
+  const ta = $("#briefText");
+  ta.style.height = "auto";
+  ta.style.height = `${Math.min(ta.scrollHeight + 2, Math.max(160, innerHeight * 0.45))}px`;
+}
+$("#briefText").addEventListener("input", () => { autosize(); paintGo(); saveCompose(); });
+$("#briefText").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !$("#goBtn").disabled) draft(); });
 for (const id of INPUT_IDS) $(`#in-${id}`).addEventListener("change", saveCompose);
 $("#fileInput").addEventListener("change", (e) => { addFiles([...e.target.files]); e.target.value = ""; });
-const drop = $("#dropZone");
-drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("is-over"); });
-drop.addEventListener("dragleave", () => drop.classList.remove("is-over"));
-drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("is-over"); addFiles([...e.dataTransfer.files]); });
+// The drop zone works like Fetch's: click it (or its title) to choose files; drop files anywhere on
+// the page; paste screenshots or text anywhere on the brief page.
+$("#browseBtn").addEventListener("click", () => $("#fileInput").click());
+$("#dropzone").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget || (e.target.closest(".dz-top") && !e.target.closest("button"))) $("#fileInput").click();
+});
+{
+  let depth = 0;
+  const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes("Files");
+  const accepting = () => auth.currentToken() && !S.run && (S.view === "compose" || S.view === "quote");
+  addEventListener("dragenter", (e) => { if (!hasFiles(e) || !accepting()) return; e.preventDefault(); if (depth++ === 0) document.body.classList.add("dragging"); });
+  addEventListener("dragover", (e) => { if (hasFiles(e) && accepting()) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; } });
+  addEventListener("dragleave", (e) => { if (hasFiles(e) && --depth <= 0) { depth = 0; document.body.classList.remove("dragging"); } });
+  addEventListener("drop", (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    depth = 0;
+    document.body.classList.remove("dragging");
+    if (!accepting()) return;
+    addFiles([...e.dataTransfer.files]);
+    if (S.view !== "compose") location.hash = "#/";
+  });
+}
+document.addEventListener("paste", (e) => {
+  if (S.view !== "compose") return;
+  const files = [...(e.clipboardData?.files || [])];
+  if (files.length) {
+    e.preventDefault();
+    addFiles(files, { pasted: true });
+    toast(files.length > 1 ? `${files.length} pasted files added.` : "Pasted file added.", { type: "success", timeout: 2200 });
+    return;
+  }
+  const text = e.clipboardData?.getData("text/plain");
+  if (text && !e.target.closest?.("textarea, input, select, [contenteditable]")) {
+    e.preventDefault();
+    const ta = $("#briefText");
+    ta.value = ta.value ? `${ta.value.trimEnd()}\n\n${text}` : text;
+    ta.focus();
+    autosize();
+    paintGo();
+    saveCompose();
+  }
+});
 $("#resumeOpen").addEventListener("click", () => { location.hash = "#/quote"; });
 $("#resumeDiscard").addEventListener("click", () => startOver());
 $("#pdfBtn").addEventListener("click", () => printPdf());

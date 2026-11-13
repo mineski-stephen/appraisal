@@ -3,39 +3,38 @@
    tokens only; the quotation sheet has its own small palette (see ".quote" below), because it is
    a client document that must look like Mineski's signed quotations in every theme and on paper. */
 
-/* ---- the brief ---------------------------------------------------------------------- */
-.compose { padding-top: clamp(20px, 5vh, 48px); display: grid; gap: 16px; }
-.compose .banner { margin: 0; max-width: none; }
-.compose textarea { background: var(--surface-2); border-color: var(--line); resize: vertical; }
-.compose textarea:focus { background: var(--surface); }
-.compose-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.drop { display: flex; align-items: center; gap: 14px; padding: 22px; border: 2px dashed var(--line-2); border-radius: var(--r);
-        background: var(--surface-2); cursor: pointer; transition: border-color var(--t-fast), background var(--t-fast); }
-.drop:hover, .drop.is-over, .drop:focus-within { border-color: var(--brand); background: var(--brand-soft); }
-.drop > .i { width: 28px; height: 28px; color: var(--brand-text); flex: none; }
-.file-list { list-style: none; margin: 0; padding: 0; }
-.file-list .chip { display: inline-flex; align-items: center; gap: 6px; }
-/* budget and scale: part of the same card as the brief, under a rule */
-.more.inputs { border-top: 1px solid var(--line); padding: 8px 0 0; }
-.inputs > summary { margin: 0 -10px; }
+/* ---- the brief ----------------------------------------------------------------------
+   The drop zone, file chips and compose bar are the family's (mineski-base.css "drop zone"), as
+   on Fetch. Appraisal adds only "Budget and scale", folded inside the drop zone. */
+.dropzone > .form-error { margin: 0 0 12px; }
+.more.inputs { margin: 12px -6px -6px; border-top: 1px solid var(--line); padding: 8px 0 0; }
 .inputs > summary em { font-style: normal; font-weight: 500; }
-.inputs-body { display: grid; gap: 14px; padding-top: 10px; }
+.inputs-body { display: grid; gap: 14px; padding: 10px 10px 4px; }
 .grid-inputs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 12px; }
 
-/* ---- the quotation page ----------------------------------------------------------------- */
-/* a document needs more room than a list: the view is `.wide` (mineski-base.css widens main for it) */
-.view-quote .page-head { position: sticky; top: var(--topbar); z-index: 5; align-items: center; padding: 14px 0 12px; margin-bottom: 6px;
+/* ---- the quotation page -----------------------------------------------------------------
+   The family's 1200px page, like every view: the toolbar, then the notes card, then the sheet. */
+.view-quote .page-head { position: sticky; top: var(--topbar); z-index: 5; align-items: center; padding: 14px 0 12px;
                          background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .quote-status { margin: 0 auto 0 4px; font-size: 13.5px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .quote-status b { font-weight: 800; }
 .quote-status .ok-text, .quote-status .warn-text { margin-left: 8px; }
-.quote-split { grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; }
-/* the notes scroll on their own when they are taller than the window (a sticky column can't be reached otherwise) */
-.quote-split > aside { top: calc(var(--topbar) + 76px); max-height: calc(100dvh - var(--topbar) - 92px); }   /* below the sticky toolbar */
-#notes p { font-size: 13.5px; }
-#notes ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
-#notes li { margin: 5px 0; }
-#notes li .btn { margin-left: 4px; }
+.quote-notes { display: grid; gap: 12px; padding: 16px 20px; margin-bottom: 16px; }
+.quote-notes p { font-size: 13.5px; }
+.quote-notes h2.subhead { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; }   /* .card h2 would make it 16px */
+.qn-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; }
+.qn-figs { display: flex; flex-wrap: wrap; gap: 6px 28px; margin: 0; }
+.qn-figs > div { display: flex; align-items: baseline; gap: 8px; }
+.qn-figs dt { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.qn-figs dd { margin: 0; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.qn-chips .chip-opt[aria-expanded="true"] { background: var(--brand-soft); border-color: transparent; color: var(--on-brand-soft); }
+.qn-chips .chip-opt:disabled { opacity: .5; cursor: default; }
+.qn-chips .chip-opt.is-warn:not(:disabled) { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+.qn-chips .chip-opt .count { margin-left: 2px; }
+.qn-panel { padding: 12px 14px; border-radius: var(--r); background: var(--surface-2); }
+.qn-panel ul { margin: 0; padding-left: 18px; font-size: 13.5px; columns: 2 320px; column-gap: 32px; }
+.qn-panel li { margin: 0 0 6px; break-inside: avoid; }
+.qn-panel li .btn { margin-left: 4px; }
 .warn-text { color: var(--warn); font-weight: 600; }
 .ok-text { color: var(--ok); font-weight: 600; }
 
@@ -174,15 +173,10 @@ button.ed { border: 0; background: none; font: inherit; color: inherit; cursor: 
 .q-two > div { display: grid; justify-items: center; }
 .q-siglabel { font-weight: 800; }
 
-@media (max-width: 1360px) {
-  .quote-split { grid-template-columns: minmax(0, 1fr); }
-  .quote-split > aside { position: static; max-height: none; overflow: visible; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
-}
 @media (max-width: 900px) {
   .grid-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
-  .compose-bar { flex-direction: column-reverse; align-items: stretch; text-align: center; }
   .q-head { grid-template-columns: 1fr auto; }
   .q-title { grid-column: 1; text-align: left; }
   .q-logo { grid-column: 2; }
@@ -200,10 +194,8 @@ button.ed { border: 0; background: none; font: inherit; color: inherit; cursor: 
 /* ---- the PDF: only the quotation, always light, never anything internal ---------------------- */
 @page { size: A4; margin: 12mm 10mm 13mm; }
 @media print {
-  body[data-view="quote"] main > :not(.view-quote), .view-quote .page-head, .quote-split > aside,
+  body[data-view="quote"] main > :not(.view-quote), .view-quote .page-head, .quote-notes,
   .internal, .q-internal, .q-tools, col.c-tools, .no-print, .q-date-input { display: none !important; }
-  body[data-view="quote"] main { max-width: none; }
-  .quote-split { display: block; }
   .quote { border: 0; border-radius: 0; box-shadow: none; padding: 0; font-size: 9px; line-height: 1.35; color: #000; background: #fff; --q-tools: 0px; --q-rem: 12%; }
   .quote, .quote * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .q-title h2 { font-size: 26px; }

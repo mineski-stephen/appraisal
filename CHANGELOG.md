@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 · Nov 13, 2026
+
+Appraisal now lays out like the rest of the family.
+
+- **The brief screen works like Fetch's**: the same drop zone (dashed outline, upload button, "Release to add" overlay), the same file chips (a PDF / IMG / TXT badge or the picture itself, the name and size), and the same compose bar. Files can be dropped anywhere on the page, Ctrl+V anywhere pastes screenshots (named "Pasted screenshot 3-41-07.png") or text, the brief box grows as you type, and Ctrl+Enter drafts. "Budget and scale" folds inside the drop zone.
+- **The quotation keeps the family's 1200px page.** It was wider than the top bar, so the page looked like a different tool. The notes moved from a side column to one card above the sheet: our cost, gross profit and the budget at a glance, then a chip for each list (Still to fill in, Questions for the client, Assumptions, Left out, Checks), opened one at a time.
+- **The top bar lines up with the page.** On any page long enough to scroll, the top bar sat about 7px to the right of the content (shared fix, in every tool).
+- Fixed: the notes card and the Settings connections list could show the word "null".
+
 ## 0.3.1 · Nov 12, 2026
 
 - The quotation's header carries the official Mineski Philippines logo (`mineski-philippines-vertical.svg`). The page uses a copy with the letters turned into outlines (`img/mineski-philippines.svg`), because the original needs the Gotham font, which most computers don't have; it would have printed in a fallback font.
